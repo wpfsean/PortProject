@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.zhketech.mstapp.client.port.project.pagers.SettingActivity">
+
+    <LinearLayout
+        android:id="@+id/sipgroup_main_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!--最顶部的头文件-->
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="21.3dp">
+
+            <TextView
+                android:id="@+id/setting_time_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="上午9:00"
+                android:textColor="@color/black" />
+        </RelativeLayout>
+        <!--标题 tilte-->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="#0051AA">
+
+            <ImageButton
+                android:id="@+id/sip_group_finish_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="10dp"
+                android:background="@drawable/port_monitoring_icon_return_selected" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:text="設置中心"
+                android:textColor="@color/white"
+                android:textSize="20sp" />
+
+            <ImageButton
+                android:id="@+id/loading_more_videosources_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="326dp"
+                android:background="@drawable/port_monitoring_icon_refresh_selected" />
+        </RelativeLayout>
+    </LinearLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+
+            <com.zhketech.mstapp.client.port.project.view.CustomListView
+                android:id="@+id/parent_listview_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:choiceMode="singleChoice"
+                android:divider="@null"
+                android:listSelector="#00000000"
+                android:scrollbars="vertical"></com.zhketech.mstapp.client.port.project.view.CustomListView>
+
+            <!--<View-->
+            <!--android:layout_width="1dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:background="#cccccc"/>-->
+
+            <com.zhketech.mstapp.client.port.project.view.CustomListView
+                android:id="@+id/sub_listview_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+            </com.zhketech.mstapp.client.port.project.view.CustomListView>
+            </LinearLayout>
+        </FrameLayout>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="提示:点击可修改"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_margin="10dp"
+            />
+
+
+
+
+    </RelativeLayout>
+
+
+</LinearLayout>

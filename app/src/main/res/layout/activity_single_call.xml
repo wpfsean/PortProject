@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@mipmap/bg">
+
+    <!--最上面的icon-->
+    <RelativeLayout
+        android:id="@+id/icone_relativtelayout_title"
+        android:layout_width="match_parent"
+        android:layout_height="35dp">
+
+        <ImageView
+            android:id="@+id/plicemen_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="15dp"
+            android:src="@mipmap/picture_badges" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="8dp"
+            android:layout_toRightOf="@+id/plicemen_icon"
+            android:text="便携式移动哨位台"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+
+        <ImageView
+            android:id="@+id/icon_network"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="6dp"
+            android:background="@mipmap/icon_network" />
+
+        <ImageView
+            android:id="@+id/icon_electritity_show"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="6dp"
+            android:layout_toLeftOf="@+id/icon_network"
+            android:background="@mipmap/icon_electricity_a" />
+
+        <ImageView
+            android:id="@+id/icon_connection_show"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="6dp"
+            android:layout_toLeftOf="@+id/icon_electritity_show"
+            android:background="@mipmap/icon_connection_normal" />
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/video_relativelayout"
+        android:layout_width="496dp"
+        android:layout_height="290dp"
+        android:layout_below="@+id/icone_relativtelayout_title"
+        android:background="@mipmap/voice_window_bg">
+
+
+        <TextView
+            android:visibility="visible"
+            android:id="@+id/text_who_is_calling_information"
+            android:gravity="center"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="36dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="hhhhhhhhhhhhhhhhhh"
+            android:textColor="@color/who_calling"
+            android:textSize="16sp"
+            />
+
+
+        <FrameLayout
+            android:id="@+id/main_player_framelayout"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="1dp">
+
+
+
+
+            <cn.nodemedia.NodePlayerView
+                android:id="@+id/main_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"></cn.nodemedia.NodePlayerView>
+
+
+
+        </FrameLayout>
+
+        <ProgressBar
+            android:id="@+id/main_progressbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
+            android:layout_centerInParent="true" />
+
+
+        <RelativeLayout
+            android:id="@+id/second_player_relativelayout"
+            android:visibility="gone"
+            android:layout_width="166.6dp"
+            android:layout_height="93.8dp"
+            android:background="@drawable/video_bg"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true">
+
+            <FrameLayout
+                android:layout_margin="1dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <SurfaceView
+                    android:id="@+id/secodary_surfacevie"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </FrameLayout>
+
+            <ProgressBar
+                android:id="@+id/secondary_progressbar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                android:layout_centerInParent="true" />
+
+        </RelativeLayout>
+
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/video_relativelayout"
+        android:layout_marginLeft="17dp"
+        android:layout_marginTop="11.7dp"
+        android:text="当前通话质量稳定"
+        android:textColor="@color/white" />
+
+    <!--最左边控制台的布局-->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="290dp"
+        android:layout_below="@+id/icone_relativtelayout_title"
+        android:layout_toRightOf="@+id/video_relativelayout"
+        android:background="@drawable/control_bg">
+
+        <!--btn_hangup_select-->
+        <ImageButton
+            android:id="@+id/btn_handup_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="40.5dp"
+            android:background="@drawable/btn_answer_select" />
+
+        <TextView
+            android:id="@+id/show_call_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/btn_handup_icon"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="28dp"
+            android:text="00:00"
+            android:textColor="@color/white"
+            android:textSize="36sp" />
+
+        <ImageButton
+            android:id="@+id/btn_mute"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/show_call_time"
+            android:layout_marginLeft="12.7dp"
+            android:layout_marginTop="34.7dp"
+            android:background="@mipmap/btn_voicetube_pressed" />
+
+        <!--android:background="@drawable/btn_mute_select"-->
+        <ImageButton
+            android:id="@+id/btn_camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/show_call_time"
+            android:layout_marginLeft="10.7dp"
+            android:layout_marginTop="34.7dp"
+            android:layout_toRightOf="@+id/btn_mute"
+            android:background="@drawable/btn_camera_select" />
+
+
+        <ImageButton
+            android:id="@+id/btn_volumeadd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/btn_mute"
+            android:layout_marginLeft="12.7dp"
+            android:layout_marginTop="10.7dp"
+            android:background="@drawable/btn_volumeadd_select" />
+
+        <ImageButton
+            android:id="@+id/btn_volumelow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/btn_mute"
+            android:layout_marginLeft="12.7dp"
+            android:layout_marginTop="10.7dp"
+            android:layout_toRightOf="@+id/btn_volumeadd"
+            android:background="@drawable/btn_volumelow_select" />
+
+
+    </RelativeLayout>
+
+
+</RelativeLayout>

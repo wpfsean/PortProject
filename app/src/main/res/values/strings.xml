@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">PortProject</string>
+    <string name="main_str_test">dd</string>
+    <string name="app_devices_information">移动式执勤信息终端</string>
+    <string name="app_devices_information_en">Mobile duty information terminal</string>
+    <string name="app_devices_main_pager_time">3月2日 星期二</string>
+    <string name="app_intercon_str">对讲</string>
+    <string name="app_video_str">视频</string>
+    <string name="app_phone_str">电话</string>
+    <string name="app_alarm_str">警报</string>
+    <string name="app_setting_str">设置</string>
+    <string name="app_apply_for_bomb_str">申请换弹</string>
+</resources>

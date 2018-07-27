@@ -1,0 +1,68 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+    defaultConfig {
+        applicationId "com.zhketech.mstapp.client.port_icon.project"
+        minSdkVersion 14
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    repositories {
+        flatDir {
+            dirs 'libs' //this way we can find the .aar file in libs folder
+        }
+    }
+    android {
+        lintOptions {
+            abortOnError false
+        }
+    }
+    allprojects {
+        repositories {
+            google()
+            jcenter()
+            maven { url 'https://jitpack.io' }
+        }
+    }
+
+    useLibrary 'org.apache.http.legacy'
+    configurations.all {
+        resolutionStrategy.force 'com.android.support:support-annotations:27.1.1'
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+
+    compile 'com.lovedise:permissiongen:0.0.6'
+    compile project(':nodemediaclient')
+    //linphone
+    compile(name: 'liblinphone-android-sdk', ext: 'aar')
+
+    compile 'com.jakewharton:butterknife:8.8.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+    //图片处理类 glide
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    //recyclearview
+    compile 'com.android.support:recyclerview-v7:26+'
+    //蓝牙库
+    implementation files('libs/FastBLE-2.3.2.jar')
+    //nodemeidaclient播放器
+    //gson解析
+    compile 'com.google.code.gson:gson:2.6.2'
+}

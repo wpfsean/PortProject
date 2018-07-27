@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp">
+
+        <ImageView
+            android:id="@+id/video_icon_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="25.3dp"
+            android:src="@mipmap/port_dome_camera" />
+
+        <TextView
+            android:id="@+id/video_name_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="18.3dp"
+            android:layout_toRightOf="@+id/video_icon_layout"
+            android:text="AAAAAAAAAAAAAAAAAA"
+            android:textSize="20sp" />
+
+        <CheckBox
+            android:id="@+id/video_checkbox_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="326.3dp"
+            android:button="@null"
+            android:background="@drawable/video_checkd_bg" />
+
+
+    </RelativeLayout>
+
+
+</RelativeLayout>
