@@ -3,36 +3,46 @@ package com.zhketech.mstapp.client.port.project.pagers;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.TextureView;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
+
 import com.zhketech.mstapp.client.port.project.R;
+import com.zhketech.mstapp.client.port.project.adpaters.ButtomSlidingAdapter;
 import com.zhketech.mstapp.client.port.project.adpaters.ChatListAdapter;
 import com.zhketech.mstapp.client.port.project.base.BaseActivity;
 import com.zhketech.mstapp.client.port.project.beans.SipClient;
+import com.zhketech.mstapp.client.port.project.global.AppConfig;
 import com.zhketech.mstapp.client.port.project.utils.Logutils;
+import com.zhketech.mstapp.client.port.project.utils.SipHttpUtils;
 import com.zhketech.mstapp.client.port.project.utils.SpaceItemDecoration;
-import com.zhketech.mstapp.client.port.project.utils.TimeDo;
 import com.zhketech.mstapp.client.port.project.view.WrapContentLinearLayoutManager;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class ChatListActivity extends BaseActivity implements View.OnClickListener ,SwipeRefreshLayout.OnRefreshListener{
+public class ChatListActivity extends BaseActivity implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     //显示联系人列表的recyclearview
-    @BindView(R.id.chat_friends_list_layout)
-    RecyclerView rw;
+    @BindView(R.id.chat_contact_list_layout)
+    RecyclerView chatList;
     //显示下拉刷新的SwipeRefreshLayout
     @BindView(R.id.swipeRefreshLayout)
     SwipeRefreshLayout sw;
@@ -40,6 +50,31 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
     ChatListAdapter ada = null;
     //list展示数据
     List<SipClient> mList = new ArrayList<>();
+    //list展示数据
+    List<SipClient> newList = new ArrayList<>();
+
+    //底部横向滑动的recyclerview
+    @BindView(R.id.bottom_sliding_recyclerview)
+    public RecyclerView bottomSlidingView;
+    //显示当前的时间
+    @BindView(R.id.chat_list_time_layout)
+    public TextView timeTextView;
+    //是否正在运行
+    boolean threadIsRun = true;
+
+    //hander修改主线程ui
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            //主页面时间显示
+            if (msg.what == 1) {
+                long time = System.currentTimeMillis();
+                Date date = new Date(time);
+                SimpleDateFormat timeD = new SimpleDateFormat("HH:mm:ss");
+                timeTextView.setText(timeD.format(date).toString());
+            }
+        }
+    };
 
     @Override
     public void onClick(View v) {
@@ -62,18 +97,20 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
                 android.R.color.holo_red_light);
         sw.setOnRefreshListener(this);
         //设置recyclerview的布局及item间隔
-        rw.setLayoutManager(new WrapContentLinearLayoutManager(ChatListActivity.this,WrapContentLinearLayoutManager.VERTICAL,false));
-        rw.addItemDecoration(new SpaceItemDecoration(0,30));
+        chatList.setLayoutManager(new WrapContentLinearLayoutManager(ChatListActivity.this, WrapContentLinearLayoutManager.VERTICAL, false));
+        chatList.addItemDecoration(new SpaceItemDecoration(0, 30));
+        chatList.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
     }
 
     @Override
     public void initData() {
-        //定时器每三秒刷新数据
-        TimeDo.getInstance().init(this, 10 * 1000);
-        TimeDo.getInstance().start();
-        TimeDo.getInstance().setListern(new TimeDo.Callback() {
+        //开始显示时间
+        TimeThread timeThread = new TimeThread();
+        new Thread(timeThread).start();
+        //获取sip数据并展示
+        SipHttpUtils sipHttpUtils = new SipHttpUtils(AppConfig.sipServerDataUrl, new SipHttpUtils.GetHttpData() {
             @Override
-            public void resultCallback(String result) {
+            public void httpData(String result) {
                 //判断是否正常的获取到数据
                 if (!TextUtils.isEmpty(result) && !result.contains("Execption")) {
                     //清除定时循环前的数据集合
@@ -103,20 +140,22 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
                                 if (ada != null) {
                                     ada = null;
                                 }
+
+
                                 ada = new ChatListAdapter(ChatListActivity.this, mList);
-                                rw.setAdapter(ada);
+                                chatList.setAdapter(ada);
                                 ada.setOnItemClickListener(new ChatListAdapter.OnItemClickListener() {
                                     @Override
                                     public void onClick(SipClient sipClient) {
-                                        Logutils.i("sss:"+sipClient.toString());
-                                        if (sipClient != null){
+                                        Logutils.i("sss:" + sipClient.toString());
+                                        if (sipClient != null) {
                                             Intent intent = new Intent();
-                                            intent.setClass(ChatListActivity.this,ChatActivity.class);
+                                            intent.setClass(ChatListActivity.this, ChatActivity.class);
                                             Bundle bundle = new Bundle();
-                                            bundle.putSerializable("sipclient",sipClient);
+                                            bundle.putSerializable("sipclient", sipClient);
                                             intent.putExtras(bundle);
                                             ChatListActivity.this.startActivity(intent);
-                                        }else {
+                                        } else {
                                             Logutils.i("Null");
                                         }
                                     }
@@ -131,8 +170,28 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
                 }
             }
         });
+        sipHttpUtils.start();
+
+        //初始化底部recyclerview横向滑动的数据
+        initBottomData();
     }
 
+
+    /**
+     * 底部横向滑动的recycler
+     */
+    private void initBottomData() {
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(ChatListActivity.this, 1);
+        gridLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        bottomSlidingView.setLayoutManager(gridLayoutManager);
+        int images[] = new int[]{R.drawable.port_network_intercom_selected, R.drawable.port_instant_messaging_selected, R.drawable.port_video_surveillance_selected, R.drawable.port_alarm_btn_selected, R.drawable.port_bullet_btn_selected};
+        ButtomSlidingAdapter ada = new ButtomSlidingAdapter(ChatListActivity.this, images, 1);
+        bottomSlidingView.setAdapter(ada);
+    }
+
+    /**
+     * 下拉刷新
+     */
     @Override
     public void onRefresh() {
         new Handler().postDelayed(new Runnable() {
@@ -143,10 +202,29 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(ChatListActivity.this,"No data",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ChatListActivity.this, "No data", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
-        },2*1000);
+        }, 2 * 1000);
+    }
+
+
+    //显示时间的线程
+    class TimeThread extends Thread {
+        @Override
+        public void run() {
+            super.run();
+            do {
+                try {
+                    Thread.sleep(1000);
+                    Message msg = new Message();
+                    msg.what = 1;
+                    handler.sendMessage(msg);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } while (threadIsRun);
+        }
     }
 }

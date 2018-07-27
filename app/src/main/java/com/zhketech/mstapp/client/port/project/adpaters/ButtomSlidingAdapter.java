@@ -61,6 +61,12 @@ public class ButtomSlidingAdapter extends RecyclerView.Adapter<ButtomSlidingAdap
             }else {
                 holder.imageButton.setBackgroundResource(images[position]);
             }
+        }else if (type ==1){
+            if (position == 1){
+                holder.imageButton.setBackgroundResource(R.mipmap.port_instant_messaging_btn_selected);
+            }else {
+                holder.imageButton.setBackgroundResource(images[position]);
+            }
         }
 
     }

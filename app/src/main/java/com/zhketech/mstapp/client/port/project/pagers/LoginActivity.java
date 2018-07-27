@@ -32,8 +32,10 @@ import com.zhketech.mstapp.client.port.project.utils.Logutils;
 import com.zhketech.mstapp.client.port.project.utils.CpuAndRam;
 import com.zhketech.mstapp.client.port.project.utils.PhoneUtils;
 import com.zhketech.mstapp.client.port.project.utils.SharedPreferencesUtils;
+import com.zhketech.mstapp.client.port.project.utils.TimeUtils;
 import com.zhketech.mstapp.client.port.project.utils.WriteLogToFile;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -147,7 +149,18 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void loginMethod() {
-
+////        Infor:1532685650292
+//        //      1532685650000
+////        2018-07-27 18:00:50
+////
+//        try {
+//            long timeStamp = System.currentTimeMillis();
+//            String time = TimeUtils.stampToDate(timeStamp);
+//            String  a = TimeUtils.dateToStamp(time);
+//            Logutils.i("Infor:"+timeStamp+"\n"+time+"\n"+a);
+//        } catch (ParseException e) {
+//            e.printStackTrace();
+//        }
         final String name = userName.getText().toString().trim();
         final String pass = userPwd.getText().toString().trim();
         final String server_IP = serverIp.getText().toString().trim();

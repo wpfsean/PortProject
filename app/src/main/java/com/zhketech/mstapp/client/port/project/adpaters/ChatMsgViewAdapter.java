@@ -51,7 +51,6 @@ public class ChatMsgViewAdapter extends BaseAdapter {
 
 
 	public int getItemViewType(int position) {
-		// TODO Auto-generated method stub
 	 	ChatMsgEntity entity = coll.get(position);
 	 	
 	 	if (entity.getMsgType())

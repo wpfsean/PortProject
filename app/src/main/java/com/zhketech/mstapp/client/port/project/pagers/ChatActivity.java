@@ -24,6 +24,7 @@ import com.zhketech.mstapp.client.port.project.taking.SipManager;
 import com.zhketech.mstapp.client.port.project.taking.SipService;
 import com.zhketech.mstapp.client.port.project.taking.SipUtils;
 import com.zhketech.mstapp.client.port.project.utils.Logutils;
+import com.zhketech.mstapp.client.port.project.utils.TimeUtils;
 
 import org.linphone.core.ErrorInfo;
 import org.linphone.core.LinphoneAddress;
@@ -32,11 +33,14 @@ import org.linphone.core.LinphoneChatRoom;
 import org.linphone.core.LinphoneContent;
 import org.linphone.core.LinphoneCore;
 import org.linphone.core.LinphoneCoreException;
+import org.linphone.core.LinphoneCoreFactory;
 import org.linphone.core.LinphoneFriend;
 import org.linphone.core.Reason;
 
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -59,6 +63,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
     LinphoneChatRoom room = null;
     SQLiteDatabase db;
     String who = "";
+    LinphoneAddress linphoneAddress;
 
     private ChatMsgViewAdapter mAdapter;
     private List<ChatMsgEntity> mDataArrays = new ArrayList<ChatMsgEntity>();
@@ -79,9 +84,9 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
 
     @Override
     public void initData() {
+
         DatabaseHelper databaseHelper = new DatabaseHelper(ChatActivity.this);
         db = databaseHelper.getWritableDatabase();
-
 
         //获取当前对话列表点击 的用户名
         SipClient sipClient = (SipClient) getIntent().getExtras().getSerializable("sipclient");
@@ -91,6 +96,13 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
         } else {
 
         }
+
+        try {
+             linphoneAddress = LinphoneCoreFactory.instance().createLinphoneAddress("sip:"+who+"@"+AppConfig.native_sip_server_ip);
+        } catch (LinphoneCoreException e) {
+            e.printStackTrace();
+        }
+
         if (SipService.isReady()) {
             //获取所有的聊天室
             LinphoneChatRoom[] rooms = SipManager.getLc().getChatRooms();
@@ -105,7 +117,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
                 LinphoneChatMessage[] ms = room.getHistory();
                 for (int i = 0; i < ms.length; i++) {
                     ChatMsgEntity entity = new ChatMsgEntity();
-                    entity.setDate(new Date().toString());
+                    entity.setDate(TimeUtils.long2Time(ms[i].getTime()+""));
                     entity.setName(ms[i].getFrom().getUserName());
                     entity.setMsgType(true);
                     entity.setText(ms[i].getText());
@@ -131,6 +143,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
             } while (cursor.moveToNext());
         }
         cursor.close();
+
         mAdapter = new ChatMsgViewAdapter(this, mDataArrays);
         mListView.setAdapter(mAdapter);
         mListView.setSelection(mListView.getCount());
@@ -197,6 +210,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
             entity.setName(AppConfig.native_sip_name);
             entity.setMsgType(false);
             entity.setText(contString);
+            Linphone.getLC().getChatRoom(linphoneAddress).sendMessage(contString);
             mDataArrays.add(entity);
             mAdapter.notifyDataSetChanged();
             mEditTextContent.setText("");
