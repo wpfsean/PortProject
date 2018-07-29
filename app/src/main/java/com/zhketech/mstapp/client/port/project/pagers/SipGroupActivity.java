@@ -132,6 +132,22 @@ public class SipGroupActivity extends BaseActivity {
         int images[] = new int[]{R.drawable.port_network_intercom_selected, R.drawable.port_instant_messaging_selected, R.drawable.port_video_surveillance_selected, R.drawable.port_alarm_btn_selected, R.drawable.port_bullet_btn_selected};
         ButtomSlidingAdapter ada = new ButtomSlidingAdapter(SipGroupActivity.this, images, 0);
         bottomSlidingView.setAdapter(ada);
+        ada.setOnItemClickListener(new ButtomSlidingAdapter.OnItemClickListener() {
+            @Override
+            public void onClick(int position) {
+
+                switch (position) {
+                    case 1:
+                        openActivityAndCloseThis(ChatListActivity.class);
+                        break;
+                    case 2:
+                        openActivityAndCloseThis(MutilScreenActivity.class);
+                        break;
+                    case 3:
+                        break;
+                }
+            }
+        });
     }
 
 

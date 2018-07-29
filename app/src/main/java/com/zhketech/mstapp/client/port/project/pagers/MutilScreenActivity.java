@@ -328,6 +328,26 @@ public class MutilScreenActivity extends BaseActivity implements NodePlayerDeleg
         int images[] = new int[]{R.drawable.port_network_intercom_selected, R.drawable.port_instant_messaging_selected, R.drawable.port_video_surveillance_selected, R.drawable.port_alarm_btn_selected, R.drawable.port_bullet_btn_selected};
         ButtomSlidingAdapter ada = new ButtomSlidingAdapter(MutilScreenActivity.this, images, 2);
         bottomSlidingView.setAdapter(ada);
+        ada.setOnItemClickListener(new ButtomSlidingAdapter.OnItemClickListener() {
+            @Override
+            public void onClick(int position) {
+
+                switch (position) {
+                    case 0:
+                        openActivityAndCloseThis(SipInforActivity.class);
+                        break;
+                    case 1:
+                        openActivityAndCloseThis(ChatListActivity.class);
+                        break;
+                    case 2:
+
+                        break;
+                    case 3:
+                        break;
+                }
+            }
+        });
+
 
     }
 

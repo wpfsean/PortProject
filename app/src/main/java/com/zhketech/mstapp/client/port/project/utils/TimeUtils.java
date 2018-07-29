@@ -5,6 +5,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by Root on 2018/7/27.
@@ -15,15 +16,27 @@ public class TimeUtils {
     TimeUtils() {
     }
 
-    public static String long2Time(String createTime){
+
+    public static String longTime2Short(String longTime) {
+        SimpleDateFormat sf = new SimpleDateFormat("EEE MMM dd hh:mm:ss z yyyy", Locale.ENGLISH);
+        Date date = null;
+        try {
+            date = sf.parse(longTime);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String result = sdf.format(date);
+        return result;
+    }
+
+
+    public static String long2Time(String createTime) {
         long msgCreateTime = Long.parseLong(createTime) * 1000L;
         DateFormat format = new SimpleDateFormat("HH:mm:ss");
         String time = format.format(new Date(msgCreateTime));
         return time;
     }
-
-
-
 
 
     public static String dateToStamp(String time) throws ParseException {
@@ -36,7 +49,7 @@ public class TimeUtils {
     /*
      * 将时间戳转换为时间
      */
-    public static String stampToDate(long timeMillis){
+    public static String stampToDate(long timeMillis) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date(timeMillis);
         return simpleDateFormat.format(date);

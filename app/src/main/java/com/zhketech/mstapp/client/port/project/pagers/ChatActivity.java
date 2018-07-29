@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,27 +19,19 @@ import com.zhketech.mstapp.client.port.project.db.DatabaseHelper;
 import com.zhketech.mstapp.client.port.project.global.AppConfig;
 import com.zhketech.mstapp.client.port.project.taking.Linphone;
 import com.zhketech.mstapp.client.port.project.taking.MessageCallback;
-import com.zhketech.mstapp.client.port.project.taking.SipManager;
 import com.zhketech.mstapp.client.port.project.taking.SipService;
-import com.zhketech.mstapp.client.port.project.taking.SipUtils;
 import com.zhketech.mstapp.client.port.project.utils.Logutils;
 import com.zhketech.mstapp.client.port.project.utils.TimeUtils;
 
-import org.linphone.core.ErrorInfo;
 import org.linphone.core.LinphoneAddress;
 import org.linphone.core.LinphoneChatMessage;
 import org.linphone.core.LinphoneChatRoom;
-import org.linphone.core.LinphoneContent;
-import org.linphone.core.LinphoneCore;
 import org.linphone.core.LinphoneCoreException;
 import org.linphone.core.LinphoneCoreFactory;
-import org.linphone.core.LinphoneFriend;
-import org.linphone.core.Reason;
 
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -53,19 +44,26 @@ import butterknife.ButterKnife;
 
 public class ChatActivity extends BaseActivity implements View.OnClickListener {
 
+    //发送消息的按钮
     @BindView(R.id.send_message_btn_layout)
     Button mBtnSend;
+    //消息
     @BindView(R.id.sendmessage_layout)
     EditText mEditTextContent;
+    //展示历史消息的ListView
     @BindView(R.id.message_listview_layout)
     ListView mListView;
-
+    //当前的聊天室对象
     LinphoneChatRoom room = null;
+    //数据库对象
     SQLiteDatabase db;
+    //和谁正在聊天
     String who = "";
+    //Linphone聊天对象的地址
     LinphoneAddress linphoneAddress;
-
+    //历史消息适配器
     private ChatMsgViewAdapter mAdapter;
+    //盛放消息的集合容器
     private List<ChatMsgEntity> mDataArrays = new ArrayList<ChatMsgEntity>();
 
     private List<ChatMsgEntity> mList = new ArrayList<ChatMsgEntity>();
@@ -84,61 +82,52 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
 
     @Override
     public void initData() {
-
+        //数据库对象
         DatabaseHelper databaseHelper = new DatabaseHelper(ChatActivity.this);
         db = databaseHelper.getWritableDatabase();
-
+        mDataArrays.clear();
         //获取当前对话列表点击 的用户名
         SipClient sipClient = (SipClient) getIntent().getExtras().getSerializable("sipclient");
         String name = sipClient.getUsrname();
         if (!TextUtils.isEmpty(name)) {
             who = name;
+            Logutils.i("who:"+who);
+            try {
+                linphoneAddress = LinphoneCoreFactory.instance().createLinphoneAddress("sip:" + who + "@" + AppConfig.native_sip_server_ip);
+            } catch (LinphoneCoreException e) {
+                e.printStackTrace();
+            }
         } else {
-
+            Logutils.e("No Get Chat Object!!!");
+            return;
         }
 
-        try {
-             linphoneAddress = LinphoneCoreFactory.instance().createLinphoneAddress("sip:"+who+"@"+AppConfig.native_sip_server_ip);
-        } catch (LinphoneCoreException e) {
-            e.printStackTrace();
-        }
-
-        if (SipService.isReady()) {
-            //获取所有的聊天室
-            LinphoneChatRoom[] rooms = SipManager.getLc().getChatRooms();
-            //判断当前 的聊天室
-            for (int i = 0; i < rooms.length; i++) {
-                if (rooms[i].getPeerAddress().getUserName().equals(who)) {
-                    room = rooms[i];
-                    break;
-                }
-            }
-            if (room != null) {
-                LinphoneChatMessage[] ms = room.getHistory();
-                for (int i = 0; i < ms.length; i++) {
-                    ChatMsgEntity entity = new ChatMsgEntity();
-                    entity.setDate(TimeUtils.long2Time(ms[i].getTime()+""));
-                    entity.setName(ms[i].getFrom().getUserName());
-                    entity.setMsgType(true);
-                    entity.setText(ms[i].getText());
-                    mDataArrays.add(entity);
-                }
-
-            }
-        }
         Cursor cursor = db.query("chat", null, null, null, null, null, null);
         if (cursor.moveToFirst()) {
             do {
                 String time = cursor.getString(cursor.getColumnIndex("time"));
                 String fromuser = cursor.getString(cursor.getColumnIndex("fromuser"));
                 String message = cursor.getString(cursor.getColumnIndex("message"));
-                if (fromuser.equals(who)) {
-                    ChatMsgEntity entity = new ChatMsgEntity();
-                    entity.setDate(time);
-                    entity.setName(fromuser);
-                    entity.setMsgType(false);
-                    entity.setText(message);
-                    mDataArrays.add(entity);
+                String toUser = cursor.getString(cursor.getColumnIndex("touser"));
+
+
+                Logutils.i(TimeUtils.longTime2Short(time) + "\t" + fromuser + "\t" + toUser + "\t" + message);
+
+
+                if (fromuser.equals(AppConfig.native_sip_name)) {
+                    ChatMsgEntity mEntity = new ChatMsgEntity();
+                    mEntity.setDate(TimeUtils.longTime2Short(time));
+                    mEntity.setName(fromuser);
+                    mEntity.setMsgType(false);
+                    mEntity.setText(message);
+                    mDataArrays.add(mEntity);
+                }else if (fromuser.equals(who)){
+                    ChatMsgEntity tEntity = new ChatMsgEntity();
+                    tEntity.setDate(TimeUtils.longTime2Short(time));
+                    tEntity.setName(fromuser);
+                    tEntity.setMsgType(true);
+                    tEntity.setText(message);
+                    mDataArrays.add(tEntity);
                 }
             } while (cursor.moveToNext());
         }
@@ -147,6 +136,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
         mAdapter = new ChatMsgViewAdapter(this, mDataArrays);
         mListView.setAdapter(mAdapter);
         mListView.setSelection(mListView.getCount());
+
     }
 
     @Override
@@ -163,21 +153,13 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
             public void receiverMessage(LinphoneChatMessage linphoneChatMessage) {
                 ChatMsgEntity chatMsgEntity = new ChatMsgEntity();
                 chatMsgEntity.setName(linphoneChatMessage.getFrom().getUserName());
-                chatMsgEntity.setDate(new Date().toString());
-                chatMsgEntity.setMsgType(false);
+                chatMsgEntity.setDate(TimeUtils.longTime2Short(new Date().toString()));
+                chatMsgEntity.setMsgType(true);
                 chatMsgEntity.setText(linphoneChatMessage.getText());
-                mList.add(chatMsgEntity);
-                if (chatMsgEntity != null) {
-                    ChatMsgEntity entity = new ChatMsgEntity();
-                    entity.setDate(chatMsgEntity.getDate());
-                    entity.setName(chatMsgEntity.getName());
-                    entity.setMsgType(true);
-                    entity.setText(chatMsgEntity.getText());
-                    mDataArrays.add(entity);
-                    mAdapter.notifyDataSetChanged();
-                    mEditTextContent.setText("");
-                    mListView.setSelection(mListView.getCount() - 1);
-                }
+                mDataArrays.add(chatMsgEntity);
+                mAdapter.notifyDataSetChanged();
+                mEditTextContent.setText("");
+                mListView.setSelection(mListView.getCount() - 1);
             }
         });
 
@@ -193,7 +175,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.send_message_btn_layout:
-                send();
+                sendMess();
                 break;
         }
     }
@@ -202,29 +184,31 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
     /**
      * 发消息
      */
-    private void send() {
-        String contString = mEditTextContent.getText().toString().trim();
-        if (contString.length() > 0) {
+    private void sendMess() {
+        String chatMessage = mEditTextContent.getText().toString().trim();
+        if (!TextUtils.isEmpty(chatMessage) && chatMessage.length() > 0) {
+            //送消息的展示界面
             ChatMsgEntity entity = new ChatMsgEntity();
-            entity.setDate(getDate());
-            entity.setName(AppConfig.native_sip_name);
+            entity.setText(chatMessage);
             entity.setMsgType(false);
-            entity.setText(contString);
-            Linphone.getLC().getChatRoom(linphoneAddress).sendMessage(contString);
+            entity.setName(AppConfig.native_sip_name);
+            entity.setDate(getDate());
             mDataArrays.add(entity);
             mAdapter.notifyDataSetChanged();
             mEditTextContent.setText("");
             mListView.setSelection(mListView.getCount() - 1);
+            //（发送sip短消息到对方）
+            Linphone.getLC().getChatRoom(linphoneAddress).sendMessage(chatMessage);
+
+            //把发的消息插入到数据库
             ContentValues contentValues = new ContentValues();
             contentValues.put("time", new Date().toString());
-            contentValues.put("fromuser", who);
-            contentValues.put("message", contString);
-            contentValues.put("touser", AppConfig.native_sip_name);
+            contentValues.put("fromuser", AppConfig.native_sip_name);
+            contentValues.put("message", chatMessage);
+            contentValues.put("touser", who);
             db.insert("chat", null, contentValues);
-            Logutils.i("插入成功");
-        } else {
-            Logutils.i("no edit text!");
         }
+
     }
 
     //时间

@@ -3,14 +3,20 @@ package com.zhketech.mstapp.client.port.project.taking;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.zhketech.mstapp.client.port.project.base.App;
 import com.zhketech.mstapp.client.port.project.beans.ChatMsgEntity;
+import com.zhketech.mstapp.client.port.project.db.DatabaseHelper;
+import com.zhketech.mstapp.client.port.project.global.AppConfig;
+import com.zhketech.mstapp.client.port.project.pagers.ChatActivity;
 import com.zhketech.mstapp.client.port.project.pagers.SingleCallActivity;
 import com.zhketech.mstapp.client.port.project.utils.Logutils;
 
@@ -34,6 +40,7 @@ import org.linphone.core.PublishState;
 import org.linphone.core.SubscriptionState;
 
 import java.nio.ByteBuffer;
+import java.util.Date;
 
 
 /**
@@ -52,6 +59,8 @@ public class SipService extends Service implements LinphoneCoreListener {
     public static boolean isReady() {
         return instance != null;
     }
+
+    SQLiteDatabase db;
 
     @Override
     public void onCreate() {
@@ -313,6 +322,21 @@ public class SipService extends Service implements LinphoneCoreListener {
     @Override
     public void messageReceived(LinphoneCore linphoneCore, LinphoneChatRoom linphoneChatRoom, LinphoneChatMessage linphoneChatMessage) {
 
+        //当前消息的内容信息
+        String mess = linphoneChatMessage.getText();
+        String from = linphoneChatMessage.getFrom().getUserName();
+        String to =  linphoneChatMessage.getTo().getUserName();
+        String messTime = new Date().toString();
+
+        //接收消息并存入数据库
+        DatabaseHelper databaseHelper = new DatabaseHelper(App.getInstance());
+         db = databaseHelper.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("time", messTime);
+        contentValues.put("fromuser", from);
+        contentValues.put("message", mess);
+        contentValues.put("touser", to);
+        db.insert("chat", null, contentValues);
         //接收短消息 的回调
         if (sMessageCallback != null){
             sMessageCallback.receiverMessage(linphoneChatMessage);

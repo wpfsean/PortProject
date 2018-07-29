@@ -108,6 +108,12 @@ public class SipInforActivity extends BaseActivity {
 
     @Override
     public void initData() {
+        new Handler().post(new Runnable() {
+            @Override
+            public void run() {
+           loading_data_show_layout.setVisibility(View.VISIBLE);
+            }
+        });
 
         //时间显示
         TimeThread timeThread = new TimeThread();
@@ -181,11 +187,16 @@ public class SipInforActivity extends BaseActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        loading_data_show_layout.setVisibility(View.GONE);
                         if (adapterList != null && adapterList.size() > 0) {
                             if (ada != null) {
                                 ada = null;
                             }
+                            new Handler().post(new Runnable() {
+                                @Override
+                                public void run() {
+                               loading_data_show_layout.setVisibility(View.GONE);
+                                }
+                            });
                             ada = new SipInforAdapter(mContext);
                             gridview.setAdapter(ada);
 

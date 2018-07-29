@@ -8,6 +8,7 @@
         android:id="@+id/message_listview_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:divider="@null"
         android:layout_above="@+id/et_relativelayout"></ListView>
 
     <RelativeLayout
@@ -20,7 +21,7 @@
             android:id="@+id/sendmessage_layout"
             android:layout_width="300dp"
             android:layout_height="wrap_content"
-            android:hint="fffffff" />
+            android:hint="" />
 
         <Button
             android:id="@+id/send_message_btn_layout"

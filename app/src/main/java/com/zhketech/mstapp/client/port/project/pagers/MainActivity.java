@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -274,6 +275,7 @@ public class MainActivity extends BaseActivity {
                             String sipPwd = s.getSippass();
                             String sipServer = s.getSipserver();
                             String name = s.getName();
+                            Logutils.i(sipName+"\n"+sipNum+"\n"+sipPwd+"\n"+sipServer);
                             if (!TextUtils.isEmpty(sipNum) && !TextUtils.isEmpty(sipPwd) && !TextUtils.isEmpty(sipServer)) {
                                 SharedPreferencesUtils.putObject(MainActivity.this, "sipName", sipName);
                                 SharedPreferencesUtils.putObject(MainActivity.this, "sipNum", sipNum);
@@ -325,22 +327,29 @@ public class MainActivity extends BaseActivity {
      */
     private void sendMessage() {
 
-        if (SipService.isReady()) {
-            try {
-                LinphoneAddress linphoneAddress = LinphoneCoreFactory.instance().createLinphoneAddress("sip:7009@19.0.0.60");
-                String x = linphoneAddress.asStringUriOnly();
-                Logutils.i("xxxxxxx:" + x);
-                Logutils.i(linphoneAddress.getUserName()+"\n"+linphoneAddress.getDomain()+"\n"+linphoneAddress.getPort());
 
-                String mess = PhoneUtils.getString(24);
+        DatabaseHelper databaseHelper = new DatabaseHelper(MainActivity.this);
+        SQLiteDatabase db = databaseHelper.getWritableDatabase();
+        db.execSQL("delete from chat");
+        Logutils.i("已清空聊天记录");
 
-               Linphone.getLC().getChatRoom(linphoneAddress).sendMessage(mess);
 
-            } catch (LinphoneCoreException e) {
-                e.printStackTrace();
-            }
-
-        }
+//        if (SipService.isReady()) {
+//            try {
+//                LinphoneAddress linphoneAddress = LinphoneCoreFactory.instance().createLinphoneAddress("sip:7009@19.0.0.60");
+//                String x = linphoneAddress.asStringUriOnly();
+//                Logutils.i("xxxxxxx:" + x);
+//                Logutils.i(linphoneAddress.getUserName()+"\n"+linphoneAddress.getDomain()+"\n"+linphoneAddress.getPort());
+//
+//                String mess = PhoneUtils.getString(24);
+//
+//               Linphone.getLC().getChatRoom(linphoneAddress).sendMessage(mess);
+//
+//            } catch (LinphoneCoreException e) {
+//                e.printStackTrace();
+//            }
+//
+//        }
     }
 
     /**

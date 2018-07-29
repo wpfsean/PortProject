@@ -20,15 +20,20 @@ import com.zhketech.mstapp.client.port.project.R;
 import com.zhketech.mstapp.client.port.project.adpaters.ButtomSlidingAdapter;
 import com.zhketech.mstapp.client.port.project.adpaters.ChatListAdapter;
 import com.zhketech.mstapp.client.port.project.base.BaseActivity;
+import com.zhketech.mstapp.client.port.project.beans.ChatMsgEntity;
 import com.zhketech.mstapp.client.port.project.beans.SipClient;
 import com.zhketech.mstapp.client.port.project.global.AppConfig;
+import com.zhketech.mstapp.client.port.project.taking.MessageCallback;
+import com.zhketech.mstapp.client.port.project.taking.SipService;
 import com.zhketech.mstapp.client.port.project.utils.Logutils;
 import com.zhketech.mstapp.client.port.project.utils.SipHttpUtils;
 import com.zhketech.mstapp.client.port.project.utils.SpaceItemDecoration;
+import com.zhketech.mstapp.client.port.project.utils.TimeUtils;
 import com.zhketech.mstapp.client.port.project.view.WrapContentLinearLayoutManager;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.linphone.core.LinphoneChatMessage;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -99,7 +104,7 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
         //设置recyclerview的布局及item间隔
         chatList.setLayoutManager(new WrapContentLinearLayoutManager(ChatListActivity.this, WrapContentLinearLayoutManager.VERTICAL, false));
         chatList.addItemDecoration(new SpaceItemDecoration(0, 30));
-        chatList.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
+        chatList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
     }
 
     @Override
@@ -107,10 +112,21 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
         //开始显示时间
         TimeThread timeThread = new TimeThread();
         new Thread(timeThread).start();
+
+        getData();
+
+        //初始化底部recyclerview横向滑动的数据
+        initBottomData();
+    }
+
+    private void getData() {
+
         //获取sip数据并展示
         SipHttpUtils sipHttpUtils = new SipHttpUtils(AppConfig.sipServerDataUrl, new SipHttpUtils.GetHttpData() {
             @Override
             public void httpData(String result) {
+
+                Logutils.i("result:" + result);
                 //判断是否正常的获取到数据
                 if (!TextUtils.isEmpty(result) && !result.contains("Execption")) {
                     //清除定时循环前的数据集合
@@ -136,12 +152,6 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                //设置适配器并添加点击事件
-                                if (ada != null) {
-                                    ada = null;
-                                }
-
-
                                 ada = new ChatListAdapter(ChatListActivity.this, mList);
                                 chatList.setAdapter(ada);
                                 ada.setOnItemClickListener(new ChatListAdapter.OnItemClickListener() {
@@ -171,9 +181,6 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
             }
         });
         sipHttpUtils.start();
-
-        //初始化底部recyclerview横向滑动的数据
-        initBottomData();
     }
 
 
@@ -187,6 +194,26 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
         int images[] = new int[]{R.drawable.port_network_intercom_selected, R.drawable.port_instant_messaging_selected, R.drawable.port_video_surveillance_selected, R.drawable.port_alarm_btn_selected, R.drawable.port_bullet_btn_selected};
         ButtomSlidingAdapter ada = new ButtomSlidingAdapter(ChatListActivity.this, images, 1);
         bottomSlidingView.setAdapter(ada);
+
+        ada.setOnItemClickListener(new ButtomSlidingAdapter.OnItemClickListener() {
+            @Override
+            public void onClick(int position) {
+
+                switch (position) {
+                    case 0:
+                        openActivityAndCloseThis(SipInforActivity.class);
+                        break;
+                    case 1:
+
+                        break;
+                    case 2:
+                        openActivityAndCloseThis(MutilScreenActivity.class);
+                        break;
+                    case 3:
+                        break;
+                }
+            }
+        });
     }
 
     /**
@@ -197,7 +224,7 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                ada.notifyDataSetChanged();
+                getData();
                 sw.setRefreshing(false);
                 runOnUiThread(new Runnable() {
                     @Override
@@ -226,5 +253,24 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
                 }
             } while (threadIsRun);
         }
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        SipService.addMessageCallback(new MessageCallback() {
+            @Override
+            public void receiverMessage(LinphoneChatMessage linphoneChatMessage) {
+                getData();
+            }
+        });
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        getData();
     }
 }

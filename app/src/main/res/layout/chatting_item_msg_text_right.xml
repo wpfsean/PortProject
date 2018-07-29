@@ -41,7 +41,6 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="10dp"
             android:layout_toLeftOf="@id/iv_userhead"
-            android:background="@mipmap/chatto_bg_focused"
             android:clickable="true"
             android:focusable="true"
             android:gravity="left|center"

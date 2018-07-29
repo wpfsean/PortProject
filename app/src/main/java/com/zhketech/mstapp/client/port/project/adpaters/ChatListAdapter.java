@@ -1,16 +1,22 @@
 package com.zhketech.mstapp.client.port.project.adpaters;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.zhketech.mstapp.client.port.project.R;
+import com.zhketech.mstapp.client.port.project.beans.ChatMsgEntity;
 import com.zhketech.mstapp.client.port.project.beans.SipClient;
+import com.zhketech.mstapp.client.port.project.db.DatabaseHelper;
+import com.zhketech.mstapp.client.port.project.pagers.ChatActivity;
 import com.zhketech.mstapp.client.port.project.taking.SipManager;
 import com.zhketech.mstapp.client.port.project.taking.SipService;
 import com.zhketech.mstapp.client.port.project.utils.Logutils;
@@ -37,6 +43,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.MyView
     Context context;
     List<SipClient> mList;
     LinphoneChatRoom[] rooms;
+    Cursor cursor;
+
     private OnItemClickListener onItemClickListener;
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
@@ -50,6 +58,12 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.MyView
         if (SipService.isReady()) {
             rooms = SipManager.getLc().getChatRooms();
         }
+
+
+        DatabaseHelper databaseHelper = new DatabaseHelper(context);
+        SQLiteDatabase db = databaseHelper.getWritableDatabase();
+        cursor = db.query("chat", null, null, null, null, null, null);
+
     }
 
 
@@ -65,6 +79,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.MyView
     public void onBindViewHolder(MyViewHolder holder, final int position) {
         holder.name.setText(mList.get(position).getUsrname());
         holder.itemView.setBackgroundResource(R.drawable.ripple_bg);
+
+        //判断当前 的sip是在线状态or 离线状态
         if (mList != null && mList.size() > 0) {
             String status = mList.get(position).getState();
             if (status.equals("0")) {
@@ -72,28 +88,28 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.MyView
             } else if (status.equals("1")) {
                 holder.status.setBackgroundResource(R.mipmap.led_connected);
             }
-            if (rooms.length > 0) {
-                String lastMess = "";
-                String time = "";
-                for (int i = 0; i < mList.size(); i++) {
-                    for (int j = 0; j < rooms.length; j++) {
-                            if (mList.get(i).getUsrname().equals(rooms[j].getPeerAddress().getUserName())) {
-                                LinphoneChatMessage[] historyMessage = rooms[j].getHistory();
-                                int last = historyMessage.length - 1;
-                                lastMess = historyMessage[last].getText();
-                                long vtime = historyMessage[last].getTime();
-                                time = TimeUtils.long2Time(vtime + "");
-                                holder.mess.setText(lastMess);
-                                holder.time.setText(time);
-                                break;
-                            }
-                    }
+        }
+
+
+        if (cursor != null) {
+            String currentUsrer = mList.get(position).getUsrname();
+            cursor.moveToLast();
+            try {
+                String time = cursor.getString(cursor.getColumnIndex("time"));
+                String fromuser = cursor.getString(cursor.getColumnIndex("fromuser"));
+                String message = cursor.getString(cursor.getColumnIndex("message"));
+                Logutils.i("time:" + time);
+                if (currentUsrer.equals(fromuser)) {
+                    holder.time.setText(TimeUtils.longTime2Short(time));
+                    holder.mess.setText(fromuser + ":" + message);
                 }
+            } catch (Exception e) {
             }
         }
-        if (onItemClickListener != null)
+//
 
-        {
+        //item点击事件
+        if (onItemClickListener != null) {
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -101,6 +117,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.MyView
                 }
             });
         }
+
+
     }
 
     @Override

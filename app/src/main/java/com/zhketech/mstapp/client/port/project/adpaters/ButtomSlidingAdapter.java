@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.zhketech.mstapp.client.port.project.R;
 import com.zhketech.mstapp.client.port.project.beans.ButtomSlidingBean;
+import com.zhketech.mstapp.client.port.project.beans.SipClient;
 
 import java.util.List;
 
@@ -32,12 +33,19 @@ public class ButtomSlidingAdapter extends RecyclerView.Adapter<ButtomSlidingAdap
     Context context;
     int[] images;
     int type;
+    private OnItemClickListener onItemClickListener;
 
     public ButtomSlidingAdapter(Context context, int[] images, int type) {
         this.context = context;
         this.images = images;
         this.type = type;
     }
+
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+        this.onItemClickListener = onItemClickListener;
+    }
+
+
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = View.inflate(parent.getContext(), R.layout.function3_button_activity, null);
@@ -48,7 +56,7 @@ public class ButtomSlidingAdapter extends RecyclerView.Adapter<ButtomSlidingAdap
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, final int position) {
         if (type ==0){
             if (position == 0){
                 holder.imageButton.setBackgroundResource(R.mipmap.port_network_intercom_btn_selected);
@@ -69,6 +77,15 @@ public class ButtomSlidingAdapter extends RecyclerView.Adapter<ButtomSlidingAdap
             }
         }
 
+        if (onItemClickListener != null) {
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onItemClickListener.onClick(position);
+                }
+            });
+        }
+
     }
 
     @Override
@@ -82,5 +99,10 @@ public class ButtomSlidingAdapter extends RecyclerView.Adapter<ButtomSlidingAdap
             super(itemView);
             imageButton = itemView.findViewById(R.id.network_intercom_button_layout);
         }
+    }
+
+
+    public interface OnItemClickListener {
+        void onClick(int position );
     }
 }

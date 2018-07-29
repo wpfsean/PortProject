@@ -56,7 +56,7 @@ public class AppConfig {
     //sip服务器管理员密码
     public static String sipServerPass = (String) SharedPreferencesUtils.getObject(App.getInstance(), "sipPwd", "");
     //sip服务器获取所有的sip用户信息
-    public static String sipServerDataUrl = "http://" + native_sip_server_ip + ":8080/openapi/localuser/list?{\"syskey\":\"" + sipServerPass + "\"}";
+    public static String sipServerDataUrl = "http://" + "19.0.0.60" + ":8080/openapi/localuser/list?{\"syskey\":\"" + "123456" + "\"}";
 
 
     public static String data = "";
