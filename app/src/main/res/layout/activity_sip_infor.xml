@@ -5,132 +5,133 @@
     android:orientation="vertical">
 
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
 
-
-    <LinearLayout
-        android:id="@+id/sipgroup_main_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <!--最顶部的头文件-->
-        <RelativeLayout
-            android:layout_width="fill_parent"
-            android:layout_height="21.3dp">
-
-            <TextView
-                android:id="@+id/sipinfor_time_layout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:text="上午9:00"
-                android:textColor="@color/black" />
-        </RelativeLayout>
-        <!--标题 tilte-->
-        <RelativeLayout
+        <LinearLayout
+            android:id="@+id/sipgroup_main_layout"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="#0051AA">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!--最顶部的头文件-->
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="21.3dp">
+
+                <TextView
+                    android:id="@+id/sipinfor_time_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="上午9:00"
+                    android:textColor="@color/black" />
+            </RelativeLayout>
+            <!--标题 tilte-->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="#0051AA">
+
+                <ImageButton
+                    android:id="@+id/sip_group_back_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="10dp"
+                    android:background="@drawable/port_monitoring_icon_return_selected" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:gravity="center"
+                    android:text="网络对讲"
+                    android:textColor="@color/white"
+                    android:textSize="20sp" />
+
+                <ImageButton
+                    android:id="@+id/sip_group_refresh_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="326dp"
+                    android:background="@drawable/port_monitoring_icon_refresh_selected" />
+            </RelativeLayout>
+        </LinearLayout>
+
+        <GridView
+            android:id="@+id/gridview"
+            android:layout_width="match_parent"
+            android:layout_height="416dp"
+            android:layout_below="@+id/sipgroup_main_layout"
+            android:layout_marginLeft="25dp"
+            android:layout_marginRight="25dp"
+            android:gravity="center_horizontal"
+            android:horizontalSpacing="10dp"
+            android:numColumns="2"
+            android:verticalSpacing="15dp"></GridView>
+
+        <LinearLayout
+            android:id="@+id/control_layout_item"
+            android:layout_width="match_parent"
+            android:layout_height="98.7dp"
+            android:orientation="horizontal">
+
 
             <ImageButton
-                android:id="@+id/sip_group_back_layout"
+                android:id="@+id/sip_group_lastpage_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_marginLeft="10dp"
-                android:background="@drawable/port_monitoring_icon_return_selected" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:gravity="center"
-                android:text="网络对讲"
-                android:textColor="@color/white"
-                android:textSize="20sp" />
+                android:layout_marginBottom="33.3dp"
+                android:layout_marginLeft="30dp"
+                android:layout_marginTop="33.3dp"
+                android:background="@drawable/port_sipgroup_left_selected" />
 
             <ImageButton
-                android:id="@+id/sip_group_refresh_layout"
+                android:id="@+id/sip_group_nextpage_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_marginLeft="326dp"
-                android:background="@drawable/port_monitoring_icon_refresh_selected" />
-        </RelativeLayout>
-    </LinearLayout>
-    <GridView
-        android:id="@+id/gridview"
-        android:layout_width="match_parent"
-        android:layout_height="416dp"
-        android:layout_below="@+id/sipgroup_main_layout"
-        android:layout_marginLeft="25dp"
-        android:layout_marginRight="25dp"
-        android:gravity="center_horizontal"
-        android:horizontalSpacing="10dp"
-        android:numColumns="2"
-        android:verticalSpacing="15dp"></GridView>
-    <LinearLayout
-        android:id="@+id/control_layout_item"
-        android:layout_width="match_parent"
-        android:layout_height="98.7dp"
-        android:orientation="horizontal">
+                android:layout_marginBottom="33.3dp"
+                android:layout_marginLeft="37.3dp"
+                android:layout_marginTop="33.3dp"
+                android:background="@drawable/port_sipgroup_right_selected" />
 
 
-        <ImageButton
-            android:id="@+id/sip_group_lastpage_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="33.3dp"
-            android:layout_marginLeft="30dp"
-            android:layout_marginTop="33.3dp"
-            android:background="@drawable/port_sipgroup_left_selected" />
-
-        <ImageButton
-            android:id="@+id/sip_group_nextpage_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="33.3dp"
-            android:layout_marginLeft="37.3dp"
-            android:layout_marginTop="33.3dp"
-            android:background="@drawable/port_sipgroup_right_selected" />
+            <ImageButton
+                android:id="@+id/voice_intercom_icon_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="33.3dp"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="33.3dp"
+                android:background="@drawable/port_sipgroup_voice_selected" />
 
 
-        <ImageButton
-            android:id="@+id/voice_intercom_icon_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="33.3dp"
-            android:layout_marginLeft="32dp"
-            android:layout_marginTop="33.3dp"
-            android:background="@drawable/port_sipgroup_voice_selected" />
+            <ImageButton
+                android:id="@+id/video_intercom_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="33.3dp"
+                android:layout_marginLeft="37.3dp"
+                android:layout_marginTop="33.3dp"
+                android:background="@drawable/port_sipgroup_video_selected" />
+        </LinearLayout>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.7dp"
+            android:layout_below="@+id/control_layout_item"
+            android:background="#cccccc"></View>
 
-        <ImageButton
-            android:id="@+id/video_intercom_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="33.3dp"
-            android:layout_marginLeft="37.3dp"
-            android:layout_marginTop="33.3dp"
-            android:background="@drawable/port_sipgroup_video_selected" />
-    </LinearLayout>
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0.7dp"
-        android:layout_below="@+id/control_layout_item"
-        android:background="#cccccc"></View>
-
-    <!--&lt;!&ndash;最底部的滑动部分&ndash;&gt;-->
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/bottom_sliding_recyclerview"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"></android.support.v7.widget.RecyclerView>
+        <!--&lt;!&ndash;最底部的滑动部分&ndash;&gt;-->
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/bottom_sliding_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"></android.support.v7.widget.RecyclerView>
 
     </LinearLayout>
 
@@ -143,14 +144,15 @@
             android:id="@+id/loading_data_progressbar_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"/>
+            android:layout_centerInParent="true"
+            android:indeterminateTint="#d38fdb" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/loading_data_progressbar_layout"
             android:layout_centerHorizontal="true"
-            android:text="正在加载 数据..."/>
+            android:text="正在加载 数据..." />
 
     </RelativeLayout>
 </FrameLayout>

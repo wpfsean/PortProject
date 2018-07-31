@@ -743,7 +743,7 @@ public class MutilScreenActivity extends BaseActivity implements NodePlayerDeleg
                 SendAlarmToServer sendAlarmToServer = new SendAlarmToServer(v, new SendAlarmToServer.Callback() {
                     @Override
                     public void getCallbackData(final String result) {
-                        if (!TextUtils.isEmpty(result)){
+                        if (!TextUtils.isEmpty(result)) {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -802,7 +802,7 @@ public class MutilScreenActivity extends BaseActivity implements NodePlayerDeleg
             SendAlarmToServer sendAlarmToServer = new SendAlarmToServer(v, new SendAlarmToServer.Callback() {
                 @Override
                 public void getCallbackData(final String result) {
-                    if (!TextUtils.isEmpty(result)){
+                    if (!TextUtils.isEmpty(result)) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -957,11 +957,13 @@ public class MutilScreenActivity extends BaseActivity implements NodePlayerDeleg
      */
     @OnClick(R.id.single_screen_button_selecte)
     public void singleScreenVideo(View view) {
+
+//        if (firstViewSelect || secondViewSelect || thirdViewSelect || fourthViewSelect) {
         single_screen_button_selecte.setBackgroundResource(R.mipmap.port_btn_single_selected);
         four_screen_button_select.setBackgroundResource(R.mipmap.port_monitoring_btn_4splitscreen_normal);
         isCurrentFourScreen = false;
         isCurrentSingleScreen = true;
-
+        //       }
 
         if (firstViewSelect) {
             String rtsp = "";

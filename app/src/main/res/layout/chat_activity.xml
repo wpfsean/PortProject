@@ -8,8 +8,8 @@
         android:id="@+id/message_listview_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="@null"
-        android:layout_above="@+id/et_relativelayout"></ListView>
+        android:layout_above="@+id/et_relativelayout"
+        android:divider="@null"></ListView>
 
     <RelativeLayout
         android:id="@+id/et_relativelayout"
@@ -23,13 +23,19 @@
             android:layout_height="wrap_content"
             android:hint="" />
 
-        <Button
+
+        <TextView
             android:id="@+id/send_message_btn_layout"
-            android:layout_width="wrap_content"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_toRightOf="@+id/sendmessage_layout"
-            android:text="send" />
+            android:background="@drawable/send_textview_mess_bg"
+            android:gravity="center"
+            android:layout_centerVertical="true"
+            android:padding="3dp"
+            android:text="发送" />
+
 
     </RelativeLayout>
 

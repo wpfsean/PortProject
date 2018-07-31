@@ -16,10 +16,13 @@ import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.CheckBox;
 import android.widget.Checkable;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -74,10 +77,6 @@ public class LoginActivity extends BaseActivity {
     @BindView(R.id.remembe_serverip_layout)
     CheckBox updateServerIpCheckBox;
 
-    //登录进度提示
-    @BindView(R.id.login_progressbar_layout)
-    ProgressBar loginPr;
-
     //登录错误信息提示
     @BindView(R.id.loin_error_infor_layout)
     TextView errorInfor;
@@ -85,6 +84,12 @@ public class LoginActivity extends BaseActivity {
     boolean isRemember;
     //是否自动 登录
     boolean isAuto;
+
+    Animation mLoadingAnim;
+
+
+    @BindView(R.id.image_loading)
+    ImageView image_loading;
 
     //整个项目可能用到的权限
     String[] permissions = new String[]{
@@ -116,6 +121,8 @@ public class LoginActivity extends BaseActivity {
 
     @Override
     public void initData() {
+
+        mLoadingAnim = AnimationUtils.loadAnimation(this, R.anim.loading);
         //获取本机的ip地址
         String nativeIP = PhoneUtils.displayIpAddress(LoginActivity.this);
         //保存终端的Ip地址
@@ -168,8 +175,9 @@ public class LoginActivity extends BaseActivity {
         new Handler().post(new Runnable() {
             @Override
             public void run() {
+                image_loading.setVisibility(View.VISIBLE);
+                image_loading.startAnimation(mLoadingAnim);
                 errorInfor.setVisibility(View.GONE);
-                loginPr.setVisibility(View.VISIBLE);
             }
         });
         final String name = userName.getText().toString().trim();
@@ -208,7 +216,8 @@ public class LoginActivity extends BaseActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    loginPr.setVisibility(View.GONE);
+                                    image_loading.clearAnimation();
+                                    image_loading.setVisibility(View.GONE);
                                     loginToCMS();
                                 }
                             });
@@ -216,7 +225,8 @@ public class LoginActivity extends BaseActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    loginPr.setVisibility(View.GONE);
+                                    image_loading.clearAnimation();
+                                    image_loading.setVisibility(View.GONE);
                                     errorInfor.setVisibility(View.VISIBLE);
                                     errorInfor.setText("Error:" + result);
 
@@ -232,7 +242,8 @@ public class LoginActivity extends BaseActivity {
             new Handler().post(new Runnable() {
                 @Override
                 public void run() {
-                    loginPr.setVisibility(View.GONE);
+                    image_loading.clearAnimation();
+                    image_loading.setVisibility(View.GONE);
                     errorInfor.setVisibility(View.VISIBLE);
                     errorInfor.setText("Error:EditText is Empty!!!");
                 }

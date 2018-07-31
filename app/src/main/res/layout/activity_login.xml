@@ -200,6 +200,7 @@
 
 
     <TextView
+        android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/remember_pass_layout"
@@ -209,8 +210,7 @@
         android:gravity="center"
         android:text="修改地址"
         android:textColor="#cccccc"
-        android:textSize="10sp"
-        android:id="@+id/textView" />
+        android:textSize="10sp" />
 
     <Button
         android:id="@+id/userlogin_button_layout"
@@ -221,24 +221,26 @@
         android:layout_marginTop="36dp"
         android:background="@drawable/login_btn_bag" />
 
-    <ProgressBar
-        android:id="@+id/login_progressbar_layout"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/remembe_serverip_layout"
-        android:layout_centerHorizontal="true"
-        android:visibility="gone" />
-
     <TextView
         android:id="@+id/loin_error_infor_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/textView"
         android:layout_centerHorizontal="true"
+        android:text="Error"
         android:textColor="#FF0000"
-        android:visibility="gone"
-        android:text="Error" />
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/image_loading"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignTop="@+id/remembe_serverip_layout"
+        android:layout_centerHorizontal="true"
+        android:contentDescription="数据加载中。。。"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_loading"
+        android:visibility="gone" />
 
 </RelativeLayout>
 

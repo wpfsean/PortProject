@@ -99,7 +99,8 @@
         <activity
             android:name=".pagers.ChatActivity"
             android:configChanges="screenSize|orientation|keyboardHidden"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustUnspecified|stateHidden" />
         <activity android:name=".pagers.SettingActivity"></activity>
     </application>
 

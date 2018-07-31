@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.zhketech.mstapp.client.port.project.R;
 import com.zhketech.mstapp.client.port.project.adpaters.ChatMsgViewAdapter;
@@ -46,7 +47,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
 
     //发送消息的按钮
     @BindView(R.id.send_message_btn_layout)
-    Button mBtnSend;
+    TextView mBtnSend;
     //消息
     @BindView(R.id.sendmessage_layout)
     EditText mEditTextContent;
@@ -65,8 +66,6 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
     private ChatMsgViewAdapter mAdapter;
     //盛放消息的集合容器
     private List<ChatMsgEntity> mDataArrays = new ArrayList<ChatMsgEntity>();
-
-    private List<ChatMsgEntity> mList = new ArrayList<ChatMsgEntity>();
 
     @Override
     public int intiLayout() {
@@ -101,16 +100,20 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
             Logutils.e("No Get Chat Object!!!");
             return;
         }
-
         getAllHistory();
-
+        //初始化适配器
         mAdapter = new ChatMsgViewAdapter(this, mDataArrays);
         mListView.setAdapter(mAdapter);
         mListView.setSelection(mListView.getCount());
     }
 
+    /**
+     * 取出所有的聊天记录
+     *
+     */
     private void getAllHistory() {
-        Cursor cursor = db.query("chat", null, null, null, null, null, null);
+        //根据条件查询聊天记录
+        Cursor cursor = db.query("chat", null, "fromuser =? or touser = ?", new String[]{who,who}, null, null, null);
         if (cursor.moveToFirst()) {
             do {
                 String time = cursor.getString(cursor.getColumnIndex("time"));
@@ -208,7 +211,6 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
             contentValues.put("touser", who);
             db.insert("chat", null, contentValues);
         }
-
     }
 
     //时间

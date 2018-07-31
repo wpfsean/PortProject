@@ -224,7 +224,7 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
 
                 switch (position) {
                     case 0:
-                        openActivityAndCloseThis(SipInforActivity.class);
+                        openActivityAndCloseThis(SipGroupActivity.class);
                         break;
                     case 1:
 
