@@ -5,82 +5,100 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
-        android:id="@+id/sipgroup_main_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
 
-        <!--最顶部的头文件-->
-        <RelativeLayout
-            android:layout_width="fill_parent"
-            android:layout_height="21.3dp">
-
-            <TextView
-                android:id="@+id/chat_list_time_layout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:text="00:00"
-                android:textColor="@color/black" />
-        </RelativeLayout>
-        <!--标题 tilte-->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="#0051AA">
-
-            <ImageButton
-                android:id="@+id/sip_group_finish_icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_marginLeft="10dp"
-                android:background="@drawable/port_monitoring_icon_return_selected" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:gravity="center"
-                android:text="即时通信"
-                android:textColor="@color/white"
-                android:textSize="20sp" />
-
-            <ImageButton
-                android:id="@+id/loading_more_videosources_layout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_marginLeft="326dp"
-                android:background="@drawable/port_monitoring_icon_refresh_selected" />
-        </RelativeLayout>
-    </LinearLayout>
-
-
-    <android.support.v4.widget.SwipeRefreshLayout
-        android:layout_below="@+id/sipgroup_main_layout"
-        android:layout_above="@+id/bottom_sliding_recyclerview"
-        android:id="@+id/swipeRefreshLayout"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/chat_contact_list_layout"
+        <LinearLayout
+            android:id="@+id/sipgroup_main_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"></android.support.v7.widget.RecyclerView>
-    </android.support.v4.widget.SwipeRefreshLayout>
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!--最顶部的头文件-->
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="21.3dp">
+
+                <TextView
+                    android:id="@+id/chat_list_time_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="00:00"
+                    android:textColor="@color/black" />
+            </RelativeLayout>
+            <!--标题 tilte-->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="#0051AA">
+
+                <ImageButton
+                    android:id="@+id/sip_group_finish_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="10dp"
+                    android:background="@drawable/port_monitoring_icon_return_selected" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:gravity="center"
+                    android:text="即时通信"
+                    android:textColor="@color/white"
+                    android:textSize="20sp" />
+
+                <ImageButton
+                    android:id="@+id/loading_more_videosources_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="326dp"
+                    android:background="@drawable/port_monitoring_icon_refresh_selected" />
+            </RelativeLayout>
+        </LinearLayout>
 
 
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/bottom_sliding_recyclerview"
+            android:layout_below="@+id/sipgroup_main_layout">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
 
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/chat_contact_list_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/bottom_sliding_recyclerview"
-        android:layout_alignParentBottom="true"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"></android.support.v7.widget.RecyclerView>
+                </android.support.v7.widget.RecyclerView>
 
+                <com.zhketech.mstapp.client.port.project.status.views.StateLayout
+                    android:id="@+id/chatlist_statelayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"></com.zhketech.mstapp.client.port.project.status.views.StateLayout>
+
+
+            </FrameLayout>
+        </android.support.v4.widget.SwipeRefreshLayout>
+
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/bottom_sliding_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_alignParentBottom="true"></android.support.v7.widget.RecyclerView>
+
+    </RelativeLayout>
 
 
 </RelativeLayout>

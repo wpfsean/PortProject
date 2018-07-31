@@ -334,7 +334,7 @@ public class MutilScreenActivity extends BaseActivity implements NodePlayerDeleg
 
                 switch (position) {
                     case 0:
-                        openActivityAndCloseThis(SipInforActivity.class);
+                        openActivityAndCloseThis(SipGroupActivity.class);
                         break;
                     case 1:
                         openActivityAndCloseThis(ChatListActivity.class);

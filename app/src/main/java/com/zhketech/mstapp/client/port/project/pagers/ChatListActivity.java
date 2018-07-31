@@ -23,6 +23,7 @@ import com.zhketech.mstapp.client.port.project.base.BaseActivity;
 import com.zhketech.mstapp.client.port.project.beans.ChatMsgEntity;
 import com.zhketech.mstapp.client.port.project.beans.SipClient;
 import com.zhketech.mstapp.client.port.project.global.AppConfig;
+import com.zhketech.mstapp.client.port.project.status.views.StateLayout;
 import com.zhketech.mstapp.client.port.project.taking.MessageCallback;
 import com.zhketech.mstapp.client.port.project.taking.SipService;
 import com.zhketech.mstapp.client.port.project.utils.Logutils;
@@ -67,6 +68,8 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
     //是否正在运行
     boolean threadIsRun = true;
 
+    StateLayout stateLayout;
+
     //hander修改主线程ui
     private Handler handler = new Handler() {
         @Override
@@ -94,6 +97,9 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
     @Override
     public void initView() {
         ButterKnife.bind(this);
+
+        stateLayout = (StateLayout) findViewById(R.id.chatlist_statelayout);
+
         //设置下拉刷新的圈颜色并添加监听事件
         sw.setColorSchemeResources(
                 android.R.color.holo_blue_bright,
@@ -109,6 +115,9 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
 
     @Override
     public void initData() {
+
+        stateLayout.showProgressView();
+        stateLayout.showProgressView("正在加载数据...");
         //开始显示时间
         TimeThread timeThread = new TimeThread();
         new Thread(timeThread).start();
@@ -124,7 +133,7 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
         //获取sip数据并展示
         SipHttpUtils sipHttpUtils = new SipHttpUtils(AppConfig.sipServerDataUrl, new SipHttpUtils.GetHttpData() {
             @Override
-            public void httpData(String result) {
+            public void httpData(final String result) {
 
                 Logutils.i("result:" + result);
                 //判断是否正常的获取到数据
@@ -152,6 +161,7 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                stateLayout.showContentView();
                                 ada = new ChatListAdapter(ChatListActivity.this, mList);
                                 chatList.setAdapter(ada);
                                 ada.setOnItemClickListener(new ChatListAdapter.OnItemClickListener() {
@@ -176,7 +186,19 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
                     } catch (Exception e) {
                     }
                 } else {
-                    Log.i("TAG", "Error Data");
+                   runOnUiThread(new Runnable() {
+                       @Override
+                       public void run() {
+                           stateLayout.showErrorView();
+                           stateLayout.showErrorView(result);
+                           stateLayout.setErrorAction(new View.OnClickListener() {
+                               @Override
+                               public void onClick(View v) {
+                                   getData();
+                               }
+                           });
+                       }
+                   });
                 }
             }
         });
@@ -194,6 +216,7 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
         int images[] = new int[]{R.drawable.port_network_intercom_selected, R.drawable.port_instant_messaging_selected, R.drawable.port_video_surveillance_selected, R.drawable.port_alarm_btn_selected, R.drawable.port_bullet_btn_selected};
         ButtomSlidingAdapter ada = new ButtomSlidingAdapter(ChatListActivity.this, images, 1);
         bottomSlidingView.setAdapter(ada);
+
 
         ada.setOnItemClickListener(new ButtomSlidingAdapter.OnItemClickListener() {
             @Override
@@ -263,10 +286,21 @@ public class ChatListActivity extends BaseActivity implements View.OnClickListen
         SipService.addMessageCallback(new MessageCallback() {
             @Override
             public void receiverMessage(LinphoneChatMessage linphoneChatMessage) {
-                getData();
+
+                String from = linphoneChatMessage.getFrom().getUserName();
+                int p = -1;
+                for (int i = 0; i < mList.size(); i++) {
+                    if (mList.get(i).getUsrname().equals(from)) {
+                        p = i;
+                        break;
+                    }
+                }
+                ada.notifyItemChanged(p);
+
             }
         });
     }
+
 
     @Override
     protected void onRestart() {

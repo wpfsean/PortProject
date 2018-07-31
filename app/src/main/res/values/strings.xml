@@ -10,4 +10,10 @@
     <string name="app_alarm_str">警报</string>
     <string name="app_setting_str">设置</string>
     <string name="app_apply_for_bomb_str">申请换弹</string>
+
+    <string name="loading">正在加载...</string>
+    <string name="error">出错了</string>
+    <string name="retry">轻触屏幕重试</string>
+    <string name="empty">啥也没有</string>
+
 </resources>

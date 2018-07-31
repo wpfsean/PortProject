@@ -16,6 +16,7 @@ import com.zhketech.mstapp.client.port.project.R;
 import com.zhketech.mstapp.client.port.project.beans.ChatMsgEntity;
 import com.zhketech.mstapp.client.port.project.beans.SipClient;
 import com.zhketech.mstapp.client.port.project.db.DatabaseHelper;
+import com.zhketech.mstapp.client.port.project.global.AppConfig;
 import com.zhketech.mstapp.client.port.project.pagers.ChatActivity;
 import com.zhketech.mstapp.client.port.project.taking.SipManager;
 import com.zhketech.mstapp.client.port.project.taking.SipService;
@@ -78,7 +79,6 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.MyView
     @Override
     public void onBindViewHolder(MyViewHolder holder, final int position) {
         holder.name.setText(mList.get(position).getUsrname());
-        holder.itemView.setBackgroundResource(R.drawable.ripple_bg);
 
         //判断当前 的sip是在线状态or 离线状态
         if (mList != null && mList.size() > 0) {
@@ -91,21 +91,42 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.MyView
         }
 
 
-        if (cursor != null) {
-            String currentUsrer = mList.get(position).getUsrname();
-            cursor.moveToLast();
-            try {
-                String time = cursor.getString(cursor.getColumnIndex("time"));
-                String fromuser = cursor.getString(cursor.getColumnIndex("fromuser"));
-                String message = cursor.getString(cursor.getColumnIndex("message"));
-                Logutils.i("time:" + time);
-                if (currentUsrer.equals(fromuser)) {
-                    holder.time.setText(TimeUtils.longTime2Short(time));
-                    holder.mess.setText(fromuser + ":" + message);
+        try {
+            Logutils.i("rooms:"+rooms.length);
+            for (int i = 0; i < rooms.length; i++) {
+                String name = rooms[i].getPeerAddress().getUserName();
+                if (!mList.get(position).getUsrname().equals(AppConfig.native_sip_name)) {
+                    if (name.equals(mList.get(position).getUsrname())) {
+                        LinphoneChatMessage[] his = rooms[i].getHistory();
+                        for (int j = 0; j < his.length; j++) {
+                            String mess = his[j].getText();
+                            long time = his[j].getTime();
+                            Logutils.i(mess+"\n"+time);
+                            holder.mess.setText(mess);
+                            holder.time.setText(TimeUtils.timeStamp2Date(time/1000+""));
+                        }
+                    }
                 }
-            } catch (Exception e) {
             }
+        } catch (Exception e) {
+            Logutils.e("sql error:" + e.getMessage());
         }
+
+//        if (cursor != null) {
+//            String currentUsrer = mList.get(position).getUsrname();
+//            cursor.moveToLast();
+//            try {
+//                String time = cursor.getString(cursor.getColumnIndex("time"));
+//                String fromuser = cursor.getString(cursor.getColumnIndex("fromuser"));
+//                String message = cursor.getString(cursor.getColumnIndex("message"));
+//                Logutils.i("time:" + time);
+//                if (currentUsrer.equals(fromuser)) {
+//                    holder.time.setText(TimeUtils.longTime2Short(time));
+//                    holder.mess.setText(fromuser + ":" + message);
+//                }
+//            } catch (Exception e) {
+//            }
+//        }
 //
 
         //item点击事件

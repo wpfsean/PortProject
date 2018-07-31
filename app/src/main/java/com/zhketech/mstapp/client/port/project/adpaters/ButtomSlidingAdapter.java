@@ -10,6 +10,7 @@ import android.widget.TextView;
 import com.zhketech.mstapp.client.port.project.R;
 import com.zhketech.mstapp.client.port.project.beans.ButtomSlidingBean;
 import com.zhketech.mstapp.client.port.project.beans.SipClient;
+import com.zhketech.mstapp.client.port.project.utils.Logutils;
 
 import java.util.List;
 
@@ -78,7 +79,8 @@ public class ButtomSlidingAdapter extends RecyclerView.Adapter<ButtomSlidingAdap
         }
 
         if (onItemClickListener != null) {
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
+
+            holder.imageButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     onItemClickListener.onClick(position);

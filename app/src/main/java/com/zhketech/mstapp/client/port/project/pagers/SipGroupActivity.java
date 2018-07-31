@@ -25,6 +25,8 @@ import com.zhketech.mstapp.client.port.project.callbacks.BatteryAndWifiService;
 import com.zhketech.mstapp.client.port.project.callbacks.SipGroupResourcesCallback;
 import com.zhketech.mstapp.client.port.project.global.AppConfig;
 import com.zhketech.mstapp.client.port.project.onvif.Device;
+import com.zhketech.mstapp.client.port.project.taking.SipManager;
+import com.zhketech.mstapp.client.port.project.taking.SipService;
 import com.zhketech.mstapp.client.port.project.utils.GsonUtils;
 import com.zhketech.mstapp.client.port.project.utils.Logutils;
 import com.zhketech.mstapp.client.port.project.utils.SharedPreferencesUtils;
@@ -197,7 +199,6 @@ public class SipGroupActivity extends BaseActivity {
                                 @Override
                                 public void onItemClick(View view, int position) {
                                     int group_id = mList.get(position).getGroup_id();
-                                    Logutils.i("aa:" + group_id);
                                     Intent intent = new Intent();
                                     intent.putExtra("group_id", group_id);
                                     intent.setClass(SipGroupActivity.this, SipInforActivity.class);
@@ -269,6 +270,15 @@ public class SipGroupActivity extends BaseActivity {
                 @Override
                 public void run() {
                     toastShort("未获取到值班室信息!!!");
+                }
+            });
+            return;
+        }
+        if (!SipService.isReady()){
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    toastShort("sip未注册");
                 }
             });
             return;

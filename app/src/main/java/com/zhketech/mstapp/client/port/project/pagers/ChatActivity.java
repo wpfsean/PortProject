@@ -91,7 +91,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
         String name = sipClient.getUsrname();
         if (!TextUtils.isEmpty(name)) {
             who = name;
-            Logutils.i("who:"+who);
+            Logutils.i("who:" + who);
             try {
                 linphoneAddress = LinphoneCoreFactory.instance().createLinphoneAddress("sip:" + who + "@" + AppConfig.native_sip_server_ip);
             } catch (LinphoneCoreException e) {
@@ -102,6 +102,14 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
             return;
         }
 
+        getAllHistory();
+
+        mAdapter = new ChatMsgViewAdapter(this, mDataArrays);
+        mListView.setAdapter(mAdapter);
+        mListView.setSelection(mListView.getCount());
+    }
+
+    private void getAllHistory() {
         Cursor cursor = db.query("chat", null, null, null, null, null, null);
         if (cursor.moveToFirst()) {
             do {
@@ -109,11 +117,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
                 String fromuser = cursor.getString(cursor.getColumnIndex("fromuser"));
                 String message = cursor.getString(cursor.getColumnIndex("message"));
                 String toUser = cursor.getString(cursor.getColumnIndex("touser"));
-
-
-                Logutils.i(TimeUtils.longTime2Short(time) + "\t" + fromuser + "\t" + toUser + "\t" + message);
-
-
+          //      Logutils.i(TimeUtils.longTime2Short(time) + "\t" + fromuser + "\t" + toUser + "\t" + message);
                 if (fromuser.equals(AppConfig.native_sip_name)) {
                     ChatMsgEntity mEntity = new ChatMsgEntity();
                     mEntity.setDate(TimeUtils.longTime2Short(time));
@@ -121,7 +125,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
                     mEntity.setMsgType(false);
                     mEntity.setText(message);
                     mDataArrays.add(mEntity);
-                }else if (fromuser.equals(who)){
+                } else if (fromuser.equals(who)) {
                     ChatMsgEntity tEntity = new ChatMsgEntity();
                     tEntity.setDate(TimeUtils.longTime2Short(time));
                     tEntity.setName(fromuser);
@@ -132,11 +136,6 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
             } while (cursor.moveToNext());
         }
         cursor.close();
-
-        mAdapter = new ChatMsgViewAdapter(this, mDataArrays);
-        mListView.setAdapter(mAdapter);
-        mListView.setSelection(mListView.getCount());
-
     }
 
     @Override
@@ -198,6 +197,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
             mEditTextContent.setText("");
             mListView.setSelection(mListView.getCount() - 1);
             //（发送sip短消息到对方）
+            if (SipService.isReady())
             Linphone.getLC().getChatRoom(linphoneAddress).sendMessage(chatMessage);
 
             //把发的消息插入到数据库
@@ -213,15 +213,8 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
 
     //时间
     private String getDate() {
-        Calendar c = Calendar.getInstance();
-        String year = String.valueOf(c.get(Calendar.YEAR));
-        String month = String.valueOf(c.get(Calendar.MONTH));
-        String day = String.valueOf(c.get(Calendar.DAY_OF_MONTH) + 1);
-        String hour = String.valueOf(c.get(Calendar.HOUR_OF_DAY));
-        String mins = String.valueOf(c.get(Calendar.MINUTE));
-        StringBuffer sbBuffer = new StringBuffer();
-        sbBuffer.append(year + "-" + month + "-" + day + " " + hour + ":" + mins);
-        return sbBuffer.toString();
+        String time = new Date().toString();
+        return TimeUtils.longTime2Short(time);
     }
 
 }

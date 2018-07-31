@@ -31,6 +31,7 @@ import com.zhketech.mstapp.client.port.project.callbacks.BatteryAndWifiCallback;
 import com.zhketech.mstapp.client.port.project.callbacks.BatteryAndWifiService;
 import com.zhketech.mstapp.client.port.project.callbacks.RequestSipSourcesThread;
 import com.zhketech.mstapp.client.port.project.global.AppConfig;
+import com.zhketech.mstapp.client.port.project.taking.SipService;
 import com.zhketech.mstapp.client.port.project.utils.Logutils;
 import com.zhketech.mstapp.client.port.project.utils.SharedPreferencesUtils;
 import com.zhketech.mstapp.client.port.project.utils.SipHttpUtils;
@@ -329,7 +330,15 @@ public class SipInforActivity extends BaseActivity {
         Intent intent = new Intent();
         switch (view.getId()) {
             case R.id.voice_intercom_icon_layout:
-
+                if (!SipService.isReady()){
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            toastShort("sip未注册");
+                        }
+                    });
+                    return;
+                }
                 if (adapterList != null && adapterList.size() > 0) {
                     intent.putExtra("isCall", true);
                     if (selected != -1) {
@@ -343,6 +352,17 @@ public class SipInforActivity extends BaseActivity {
 
                 break;
             case R.id.video_intercom_layout:
+
+                if (!SipService.isReady()){
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            toastShort("sip未注册");
+                        }
+                    });
+                    return;
+                }
+
                 if (adapterList != null && adapterList.size() > 0) {
                     intent.putExtra("isCall", true);
                     if (selected != -1) {

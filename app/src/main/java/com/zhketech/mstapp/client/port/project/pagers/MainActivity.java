@@ -60,6 +60,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -72,6 +74,9 @@ import butterknife.OnClick;
 public class MainActivity extends BaseActivity {
     //handler时间标识
     public static int timeFlage = 10001;
+
+    //
+    ExecutorService fixedThreadPool = null;
 
     public static final int FLAGE = 1000;
     boolean threadIsRun = true;
@@ -219,6 +224,7 @@ public class MainActivity extends BaseActivity {
      */
     private void getAllVideoResoucesInformation() {
         Logutils.i("Date:" + new Date().toString());
+         fixedThreadPool = Executors.newFixedThreadPool(5);
         RequestVideoSourcesThread requestVideoSourcesThread = new RequestVideoSourcesThread(MainActivity.this, new RequestVideoSourcesThread.GetDataListener() {
             @Override
             public void getResult(final List<VideoBen> mList) {
@@ -242,7 +248,8 @@ public class MainActivity extends BaseActivity {
                                 handler.sendMessage(message);
                             }
                         });
-                        new Thread(onvif).start();
+                        fixedThreadPool.execute(onvif);
+                    //    new Thread(onvif).start();
                     }
                 } else {
                     runOnUiThread(new Runnable() {

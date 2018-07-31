@@ -6,8 +6,10 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.zhketech.mstapp.client.port.project.R;
+import com.zhketech.mstapp.client.port.project.base.App;
 import com.zhketech.mstapp.client.port.project.beans.ChatMsgEntity;
 import com.zhketech.mstapp.client.port.project.utils.Logutils;
+import com.zhketech.mstapp.client.port.project.utils.PhoneUtils;
 
 import org.linphone.core.LinphoneAddress;
 import org.linphone.core.LinphoneAuthInfo;
@@ -219,7 +221,7 @@ public class SipManager implements LinphoneCoreListener {
             if (versionName == null) {
                 versionName = String.valueOf(mServiceContext.getPackageManager().getPackageInfo(mServiceContext.getPackageName(), 0).versionCode);
             }
-            mLc.setUserAgent("zkth", versionName);
+            mLc.setUserAgent("zkth", versionName+"/"+ PhoneUtils.getPhoneInfo(App.getInstance(),3));
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }

@@ -55,4 +55,13 @@ public class ChatMsgEntity {
         this.isComMeg = isComMsg;
     }
 
+    @Override
+    public String toString() {
+        return "ChatMsgEntity{" +
+                "name='" + name + '\'' +
+                ", date='" + date + '\'' +
+                ", text='" + text + '\'' +
+                ", isComMeg=" + isComMeg +
+                '}';
+    }
 }
