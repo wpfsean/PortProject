@@ -1,5 +1,6 @@
 package com.zhketech.mstapp.client.port.project.pagers;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -52,21 +53,22 @@ import butterknife.OnClick;
  */
 public class SipGroupActivity extends BaseActivity {
 
+    //sipgroup列表布局
     @BindView(R.id.sip_group_recyclearview)
     public RecyclerView recyclearview;
-
+    //底部的按钮列表
     @BindView(R.id.bottom_sliding_recyclerview)
     public RecyclerView bottomSlidingView;
-
     //存放SipGroup信息的集合
     List<SipGroupBean> mList = new ArrayList<>();
+    //获取到的值班室信息
     String callNumber = "";
-
-
+    //时间显示
     @BindView(R.id.sipgroup_time_layout)
     public TextView timeTextView;
-
+    //时间线程是否正在运行
     boolean threadIsRun = true;
+    //hander刷新主线程显示时间
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -76,8 +78,6 @@ public class SipGroupActivity extends BaseActivity {
                 Date date = new Date(time);
                 SimpleDateFormat timeD = new SimpleDateFormat("HH:mm:ss");
                 timeTextView.setText(timeD.format(date).toString());
-//                SimpleDateFormat dateD = new SimpleDateFormat("MM月dd日 EEE");
-//                dateTextView.setText(dateD.format(date).toString());
             }
         }
     };
@@ -95,13 +95,18 @@ public class SipGroupActivity extends BaseActivity {
 
     @Override
     public void initData() {
+        //获取值室信息
         SipHttpUtils sipHttpUtils = new SipHttpUtils(AppConfig.DUTY_ROOM_URL, new SipHttpUtils.GetHttpData() {
             @Override
             public void httpData(String result) {
-                if (TextUtils.isEmpty(result)) {
-                    return;
-                }
-                if (result.contains("Execption")) {
+                if (TextUtils.isEmpty(result) || result.contains("Execption")) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(SipGroupActivity.this);
+                            builder.setTitle("Error:").setMessage("未获取到值班室信息,请检查网络是否连接正常").create().show();
+                        }
+                    });
                     return;
                 }
                 try {
@@ -120,13 +125,20 @@ public class SipGroupActivity extends BaseActivity {
             }
         });
         sipHttpUtils.start();
+
+
         getSipGroupResources();
+        //加载底部数据
         initBottomData();
+        //时间显示线程
         TimeThread timeThread = new TimeThread();
         new Thread(timeThread).start();
     }
 
 
+    /**
+     * 初始化底部数据
+     */
     private void initBottomData() {
         GridLayoutManager gridLayoutManager = new GridLayoutManager(SipGroupActivity.this, 1);
         gridLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
@@ -170,8 +182,6 @@ public class SipGroupActivity extends BaseActivity {
             } while (threadIsRun);
         }
     }
-
-
     /**
      * CMS获取Sip分组信息
      */
@@ -185,7 +195,6 @@ public class SipGroupActivity extends BaseActivity {
                 if (dataList != null && dataList.size() > 0) {
                     mList = dataList;
                     int s = dataList.size();
-                    Logutils.i("ss:" + s);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -263,7 +272,7 @@ public class SipGroupActivity extends BaseActivity {
         }
     }
 
-
+    //打电话
     public void call(int type) {
         if (TextUtils.isEmpty(callNumber)) {
             runOnUiThread(new Runnable() {
@@ -274,7 +283,7 @@ public class SipGroupActivity extends BaseActivity {
             });
             return;
         }
-        if (!SipService.isReady()){
+        if (!SipService.isReady()) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -291,56 +300,5 @@ public class SipGroupActivity extends BaseActivity {
             intent.putExtra("isVideo", true);
         }
         startActivity(intent);
-    }
-
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-//        BatteryAndWifiService.addBatterCallback(new BatteryAndWifiCallback() {
-//            @Override
-//            public void getBatteryData(final int level) {
-//
-//                if (level >= 75 && level <= 100) {
-//                    updateUi(batteryIcon, R.mipmap.icon_electricity_a);
-//                }
-//                if (level >= 50 && level < 75) {
-//                    updateUi(batteryIcon, R.mipmap.icon_electricity_b);
-//                }
-//                if (level >= 25 && level < 50) {
-//                    updateUi(batteryIcon, R.mipmap.icon_electricity_c);
-//                }
-//                if (level >= 0 && level < 25) {
-//                    updateUi(batteryIcon, R.mipmap.icon_electricity_disable);
-//                }
-//
-//            }
-//
-//            @Override
-//            public void getWifiData(int rssi) {
-//                if (rssi > -50 && rssi < 0) {
-//                    updateUi(networkIcon, R.mipmap.icon_network);
-//                } else if (rssi > -70 && rssi <= -50) {
-//                    updateUi(networkIcon, R.mipmap.icon_network_a);
-//                } else if (rssi < -70) {
-//                    updateUi(networkIcon, R.mipmap.icon_network_b);
-//                } else if (rssi == -200) {
-//                    updateUi(networkIcon, R.mipmap.icon_network_disable);
-//                }
-//            }
-//        });
-    }
-
-    /**
-     * 更新UI
-     */
-    public void updateUi(final ImageView imageView, final int n) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                imageView.setBackgroundResource(n);
-            }
-        });
     }
 }

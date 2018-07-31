@@ -9,6 +9,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -20,6 +21,7 @@ import android.widget.Checkable;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.zhketech.mstapp.client.port.project.R;
@@ -44,8 +46,14 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class LoginActivity extends BaseActivity {
+/**
+ * @author wpf
+ *         <p>
+ *         登录界面
+ */
 
+
+public class LoginActivity extends BaseActivity {
 
     //用户名
     @BindView(R.id.edit_username_layout)
@@ -66,7 +74,16 @@ public class LoginActivity extends BaseActivity {
     @BindView(R.id.remembe_serverip_layout)
     CheckBox updateServerIpCheckBox;
 
+    //登录进度提示
+    @BindView(R.id.login_progressbar_layout)
+    ProgressBar loginPr;
+
+    //登录错误信息提示
+    @BindView(R.id.loin_error_infor_layout)
+    TextView errorInfor;
+    //是否记住密码
     boolean isRemember;
+    //是否自动 登录
     boolean isAuto;
 
     //整个项目可能用到的权限
@@ -92,21 +109,24 @@ public class LoginActivity extends BaseActivity {
     @Override
     public void initView() {
         ButterKnife.bind(this);
+        //首先是权限 验证
         verifyPermissions();
 
     }
 
     @Override
     public void initData() {
+        //获取本机的ip地址
         String nativeIP = PhoneUtils.displayIpAddress(LoginActivity.this);
+        //保存终端的Ip地址
         if (!TextUtils.isEmpty(nativeIP)) {
             SharedPreferencesUtils.putObject(LoginActivity.this, "nativeIp", nativeIP);
         } else {
             SharedPreferencesUtils.putObject(LoginActivity.this, "nativeIp", "127.0.0.1");
         }
+        //开启监听电量 和信号强度的后台服务
         startService(new Intent(this, BatteryAndWifiService.class));
-
-
+        //判断本地是否保存了帐号信息
         String logined_name = (String) SharedPreferencesUtils.getObject(App.getInstance(), "username", "");
         String logined_pass = (String) SharedPreferencesUtils.getObject(App.getInstance(), "userpass", "");
         String logined_serverip = (String) SharedPreferencesUtils.getObject(App.getInstance(), "serverip", "");
@@ -130,37 +150,28 @@ public class LoginActivity extends BaseActivity {
 
 
     }
-//, R.id.userlogin_button_cancel_layout
+
+    //通过验证VideoResources返回的video数据量来验证登录是否成功（查看接口文档）
     @OnClick({R.id.userlogin_button_layout})
     public void loginOrCancel(View view) {
         switch (view.getId()) {
             case R.id.userlogin_button_layout:
                 loginMethod();
-                //  LoginToCMS();
                 break;
-//            case R.id.userlogin_button_cancel_layout:
-//                LoginCancel();
-//                break;
         }
     }
 
-    private void LoginCancel() {
-        startActivity(new Intent(LoginActivity.this, ChannelListActivity.class));
-    }
-
+    /**
+     * 登录 验证
+     */
     private void loginMethod() {
-////        Infor:1532685650292
-//        //      1532685650000
-////        2018-07-27 18:00:50
-////
-//        try {
-//            long timeStamp = System.currentTimeMillis();
-//            String time = TimeUtils.stampToDate(timeStamp);
-//            String  a = TimeUtils.dateToStamp(time);
-//            Logutils.i("Infor:"+timeStamp+"\n"+time+"\n"+a);
-//        } catch (ParseException e) {
-//            e.printStackTrace();
-//        }
+        new Handler().post(new Runnable() {
+            @Override
+            public void run() {
+                errorInfor.setVisibility(View.GONE);
+                loginPr.setVisibility(View.VISIBLE);
+            }
+        });
         final String name = userName.getText().toString().trim();
         final String pass = userPwd.getText().toString().trim();
         final String server_IP = serverIp.getText().toString().trim();
@@ -182,7 +193,7 @@ public class LoginActivity extends BaseActivity {
                 @Override
                 public void loginStatus(final String status) {
                     if (!TextUtils.isEmpty(status)) {
-                        String result = status;
+                        final String result = status;
                         Logutils.i(result);
                         if (status.equals("success")) {
                             if (isRemember == true) {
@@ -197,6 +208,7 @@ public class LoginActivity extends BaseActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
+                                    loginPr.setVisibility(View.GONE);
                                     loginToCMS();
                                 }
                             });
@@ -204,7 +216,10 @@ public class LoginActivity extends BaseActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    toastShort("Login Filed !!\n Please enter the correct informatiom !!!"+status);
+                                    loginPr.setVisibility(View.GONE);
+                                    errorInfor.setVisibility(View.VISIBLE);
+                                    errorInfor.setText("Error:" + result);
+
                                 }
                             });
                         }
@@ -213,21 +228,30 @@ public class LoginActivity extends BaseActivity {
             });
             loginThread.start();
         } else {
-            runOnUiThread(new Runnable() {
+
+            new Handler().post(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(LoginActivity.this, "Can not be empty !!!", Toast.LENGTH_SHORT).show();
+                    loginPr.setVisibility(View.GONE);
+                    errorInfor.setVisibility(View.VISIBLE);
+                    errorInfor.setText("Error:EditText is Empty!!!");
                 }
             });
         }
     }
 
+    /**
+     * Login to Cms
+     */
     private void loginToCMS() {
+        //开启cpu和内存计算的监听 （每5秒执行一次）
         CpuAndRam.getInstance().init(getApplicationContext(), 5 * 1000L);
         CpuAndRam.getInstance().start();
+        //同时获取Location 地址
         getLocation();
         startActivity(new Intent(LoginActivity.this, MainActivity.class));
         LoginActivity.this.finish();
+        //写入文件记录登录的时间
         WriteLogToFile.info("成功登录：" + new Date().toString());
     }
 
@@ -243,7 +267,6 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void initThisPageData() {
-        Log.i("TAG", "can't request permission !!!");
     }
 
     /**
@@ -261,7 +284,6 @@ public class LoginActivity extends BaseActivity {
             ActivityCompat.requestPermissions(LoginActivity.this, permissions, 1);
         } else {
             //未授予的权限为空，表示都授予了 // 后续操作...
-            Log.i("TAG", "权限已全部给予");
             initThisPageData();
         }
     }
@@ -294,17 +316,6 @@ public class LoginActivity extends BaseActivity {
         }
     }
 
-
-    public void openPermissionPager(View view) {
-        String sdk = android.os.Build.VERSION.SDK; // SDK号
-        String model = android.os.Build.MODEL; // 手机型号
-        String release = android.os.Build.VERSION.RELEASE; // android系统版本号
-        String brand = Build.BRAND;//手机厂商
-
-        Log.i("TAG", "");
-    }
-
-
     @SuppressLint("MissingPermission")
     public void getLocation() {
         LocationManager mLocationManager = (LocationManager) getSystemService(getApplicationContext().LOCATION_SERVICE);
@@ -318,13 +329,11 @@ public class LoginActivity extends BaseActivity {
     LocationListener mLocationListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
-
             double lat = location.getLatitude();
             double log = location.getLongitude();
-            Logutils.i("Lat:" + lat + "\n" + log);
+            Logutils.i("Location:" + lat + "\n" + log);
             SharedPreferencesUtils.putObject(LoginActivity.this, "lat", lat + "");
             SharedPreferencesUtils.putObject(LoginActivity.this, "long", log + "");
-
         }
 
         @Override

@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.zhketech.mstapp.client.port.project.R;
 import com.zhketech.mstapp.client.port.project.adpaters.ButtomSlidingAdapter;
@@ -60,27 +61,30 @@ public class SipInforActivity extends BaseActivity {
     //显示当前时间
     @BindView(R.id.sipinfor_time_layout)
     public TextView timeTextView;
-
+    //显示正在加载数据 的布局
     @BindView(R.id.loading_data_show_layout)
     RelativeLayout loading_data_show_layout;
-
-
+    //底部button布局
     @BindView(R.id.bottom_sliding_recyclerview)
     public RecyclerView bottomSlidingView;
-
     //展示数据的gridview
     @BindView(R.id.gridview)
     public GridView gridview;
 
     Context mContext;
+    //当前的选 项
     int selected = -1;
+    //适配器
     SipInforAdapter ada = null;
-
+    //cms获取 的sip数据
     List<SipBean> sipListResources = new ArrayList<>();
+    //miniSipServer获取到的数据
     List<SipClient> mList = new ArrayList<>();
+    //两集合的交集数据
     List<SipClient> adapterList = new ArrayList<>();
-
+    //时间线程是否正在运行
     boolean threadIsRun = true;
+    //handler刷新主Ui显示时间
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -94,7 +98,6 @@ public class SipInforActivity extends BaseActivity {
         }
     };
 
-
     @Override
     public int intiLayout() {
         return R.layout.activity_sip_infor;
@@ -104,23 +107,23 @@ public class SipInforActivity extends BaseActivity {
     public void initView() {
         ButterKnife.bind(this);
         mContext = this;
-
     }
 
     @Override
     public void initData() {
+        //显示正在加载数据的布局
         new Handler().post(new Runnable() {
             @Override
             public void run() {
-           loading_data_show_layout.setVisibility(View.VISIBLE);
+                loading_data_show_layout.setVisibility(View.VISIBLE);
             }
         });
 
         //时间显示
         TimeThread timeThread = new TimeThread();
         new Thread(timeThread).start();
-        //group id
-        int groupID = getIntent().getIntExtra("group_id", 0);
+        //传递过来 的groupid信息
+        final int groupID = getIntent().getIntExtra("group_id", 0);
         if (groupID != 0) {
             RequestSipSourcesThread requestSipSourcesThread = new RequestSipSourcesThread(mContext, groupID + "", new RequestSipSourcesThread.SipListern() {
                 @Override
@@ -139,13 +142,16 @@ public class SipInforActivity extends BaseActivity {
                 }
             });
             requestSipSourcesThread.start();
+        } else {
+            Logutils.i("未获取到正常的groupID");
+            return;
         }
-
+        //定时获取数据
         TimeDo.getInstance().init(mContext, 3 * 1000);
         TimeDo.getInstance().start();
         TimeDo.getInstance().setListern(new TimeDo.Callback() {
             @Override
-            public void resultCallback(String result) {
+            public void resultCallback(final String result) {
                 if (mList.size() > 0) {
                     mList.clear();
                 }
@@ -184,7 +190,6 @@ public class SipInforActivity extends BaseActivity {
                     }
                 }
                 List<SipClient> dd = adapterList;
-
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -195,12 +200,11 @@ public class SipInforActivity extends BaseActivity {
                             new Handler().post(new Runnable() {
                                 @Override
                                 public void run() {
-                               loading_data_show_layout.setVisibility(View.GONE);
+                                    loading_data_show_layout.setVisibility(View.GONE);
                                 }
                             });
                             ada = new SipInforAdapter(mContext);
                             gridview.setAdapter(ada);
-
                             gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                 @Override
                                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -216,8 +220,8 @@ public class SipInforActivity extends BaseActivity {
             }
         });
         initBottomData();
-
     }
+
 
     //显示时间的线程
     class TimeThread extends Thread {
@@ -315,6 +319,9 @@ public class SipInforActivity extends BaseActivity {
         }
     }
 
+    /**
+     * 初始化底部数据
+     */
     private void initBottomData() {
         GridLayoutManager gridLayoutManager = new GridLayoutManager(SipInforActivity.this, 1);
         gridLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
@@ -330,7 +337,7 @@ public class SipInforActivity extends BaseActivity {
         Intent intent = new Intent();
         switch (view.getId()) {
             case R.id.voice_intercom_icon_layout:
-                if (!SipService.isReady()){
+                if (!SipService.isReady()) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -353,7 +360,7 @@ public class SipInforActivity extends BaseActivity {
                 break;
             case R.id.video_intercom_layout:
 
-                if (!SipService.isReady()){
+                if (!SipService.isReady()) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -411,4 +418,5 @@ public class SipInforActivity extends BaseActivity {
         super.onResume();
 
     }
+
 }

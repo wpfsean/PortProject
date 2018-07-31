@@ -209,7 +209,8 @@
         android:gravity="center"
         android:text="修改地址"
         android:textColor="#cccccc"
-        android:textSize="10sp" />
+        android:textSize="10sp"
+        android:id="@+id/textView" />
 
     <Button
         android:id="@+id/userlogin_button_layout"
@@ -219,6 +220,25 @@
         android:layout_marginLeft="59dp"
         android:layout_marginTop="36dp"
         android:background="@drawable/login_btn_bag" />
+
+    <ProgressBar
+        android:id="@+id/login_progressbar_layout"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/remembe_serverip_layout"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/loin_error_infor_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView"
+        android:layout_centerHorizontal="true"
+        android:textColor="#FF0000"
+        android:visibility="gone"
+        android:text="Error" />
 
 </RelativeLayout>
 

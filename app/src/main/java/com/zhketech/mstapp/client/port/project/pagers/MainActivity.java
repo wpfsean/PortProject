@@ -30,6 +30,7 @@ import com.zhketech.mstapp.client.port.project.db.DatabaseHelper;
 import com.zhketech.mstapp.client.port.project.global.AppConfig;
 import com.zhketech.mstapp.client.port.project.onvif.Device;
 import com.zhketech.mstapp.client.port.project.onvif.Onvif;
+import com.zhketech.mstapp.client.port.project.status.views.StateLayout;
 import com.zhketech.mstapp.client.port.project.taking.Linphone;
 import com.zhketech.mstapp.client.port.project.taking.PhoneCallback;
 import com.zhketech.mstapp.client.port.project.taking.RegistrationCallback;
@@ -58,6 +59,7 @@ import org.linphone.core.Reason;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -68,19 +70,20 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 /**
- * 主页面
+ * @author wpf
+ *         主页面
  */
 
 public class MainActivity extends BaseActivity {
     //handler时间标识
     public static int timeFlage = 10001;
-
-    //
+    //线程池
     ExecutorService fixedThreadPool = null;
-
+    //数据标识
     public static final int FLAGE = 1000;
+    //时间线程是否正在运行
     boolean threadIsRun = true;
-
+    //存放设备信息的集合
     List<Device> dataSources = new ArrayList<>();
     int num = -1;
     //时间
@@ -89,7 +92,7 @@ public class MainActivity extends BaseActivity {
     //日期
     @BindView(R.id.main_icon_date)
     TextView dateTextView;
-
+    //进度条
     @BindView(R.id.main_progressbar)
     ProgressBar main_progressbar;
 
@@ -112,26 +115,15 @@ public class MainActivity extends BaseActivity {
                 Device device = (Device) bundle.getSerializable("device");
                 dataSources.add(device);
                 if (dataSources.size() == num) {
-                    Logutils.i(dataSources.toString());
-                    Log.i("TAG", dataSources.size() + "");
-                    Logutils.i("Date:" + new Date().toString());
                     String json = GsonUtils.getGsonInstace().list2String(dataSources);
                     if (TextUtils.isEmpty(json)) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                ToastUtils.showShort("Json not to String !!! ");
-                            }
-                        });
-                        Logutils.i("为空了");
                         return;
                     }
-                    AppConfig.data = json;
                     SharedPreferencesUtils.putObject(MainActivity.this, "result", json);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            toastShort("init data fished !!!");
+                            toastShort("数据加载完毕！！！");
                         }
                     });
                 }
@@ -147,19 +139,12 @@ public class MainActivity extends BaseActivity {
     @Override
     public void initView() {
         ButterKnife.bind(this);
-
-        //藍牙模塊配置(後期若不用,可刪除)
-        BleManager.getInstance()
-                .enableLog(false)
-                .setReConnectCount(1, 5000)
-                .setSplitWriteNum(20)
-                .setConnectOverTime(10000)
-                .setOperateTimeout(5000);
-
     }
 
     @Override
     public void initData() {
+        fixedThreadPool = Executors.newFixedThreadPool(5);
+
         //接收短消息
         ReceiveServerMess receiveServerMess = new ReceiveServerMess(new ReceiveServerMess.GetSmsListern() {
             @Override
@@ -223,42 +208,55 @@ public class MainActivity extends BaseActivity {
      * 获取所有的video资源并解析rtsp
      */
     private void getAllVideoResoucesInformation() {
-        Logutils.i("Date:" + new Date().toString());
-         fixedThreadPool = Executors.newFixedThreadPool(5);
         RequestVideoSourcesThread requestVideoSourcesThread = new RequestVideoSourcesThread(MainActivity.this, new RequestVideoSourcesThread.GetDataListener() {
             @Override
             public void getResult(final List<VideoBen> mList) {
                 if (mList != null && mList.size() > 0) {
+                    //总数据量
                     num = mList.size();
                     for (int i = 0; i < mList.size(); i++) {
                         String deviceType = mList.get(i).getDevicetype();
-
-                        String ip = mList.get(i).getIp();
-                        final Device device = new Device();
-                        device.setVideoBen(mList.get(i));
-                        device.setServiceUrl("http://" + ip + "/onvif/device_service");
-                        Onvif onvif = new Onvif(device, new Onvif.GetRtspCallback() {
-                            @Override
-                            public void getDeviceInfoResult(String rtsp, boolean isSuccess, Device mDevice) {
-                                Message message = new Message();
-                                Bundle bundle = new Bundle();
-                                bundle.putSerializable("device", mDevice);
-                                message.setData(bundle);
-                                message.what = FLAGE;
-                                handler.sendMessage(message);
-                            }
-                        });
-                        fixedThreadPool.execute(onvif);
-                    //    new Thread(onvif).start();
+                        if (deviceType.equals("ONVIF")) {
+                            String ip = mList.get(i).getIp();
+                            final Device device = new Device();
+                            device.setVideoBen(mList.get(i));
+                            device.setServiceUrl("http://" + ip + "/onvif/device_service");
+                            Onvif onvif = new Onvif(device, new Onvif.GetRtspCallback() {
+                                @Override
+                                public void getDeviceInfoResult(String rtsp, boolean isSuccess, Device mDevice) {
+                                    Message message = new Message();
+                                    Bundle bundle = new Bundle();
+                                    bundle.putSerializable("device", mDevice);
+                                    message.setData(bundle);
+                                    message.what = FLAGE;
+                                    handler.sendMessage(message);
+                                }
+                            });
+                            fixedThreadPool.execute(onvif);
+                        } else if (deviceType.equals("RTSP")) {
+                            String mRtsp = "rtsp://" + mList.get(i).getUsername() + ":" + mList.get(i).getPassword() + "@" + mList.get(i).getIp() + ":" + mList.get(i).getChannel();
+                            VideoBen v = mList.get(i);
+                            v.setRtsp(mRtsp);
+                            Device device = new Device();
+                            device.setRtspUrl(mRtsp);
+                            device.setVideoBen(v);
+                            Message message = new Message();
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable("device", device);
+                            message.setData(bundle);
+                            message.what = FLAGE;
+                            handler.sendMessage(message);
+                        }
                     }
                 } else {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            ToastUtils.showShort("No get Video Resources Data !!!");
-                            WriteLogToFile.info("No get Video Resources Data !!!");
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            builder.setTitle("No Sip Infor").setMessage("未获取到VideoResources，请检查本机网络是否连接正常~~").create().show();
                         }
                     });
+                    WriteLogToFile.info("No get Video Resources Data !!!");
                 }
             }
         });
@@ -272,7 +270,6 @@ public class MainActivity extends BaseActivity {
         RequestSipSourcesThread sipThread = new RequestSipSourcesThread(MainActivity.this, "0", new RequestSipSourcesThread.SipListern() {
             @Override
             public void getDataListern(List<SipBean> mList) {
-                List<SipBean> a = mList;
                 String nativeIp = (String) SharedPreferencesUtils.getObject(MainActivity.this, "nativeIp", "");
                 if (mList != null && mList.size() > 0) {
                     for (SipBean s : mList) {
@@ -282,7 +279,7 @@ public class MainActivity extends BaseActivity {
                             String sipPwd = s.getSippass();
                             String sipServer = s.getSipserver();
                             String name = s.getName();
-                            Logutils.i(sipName+"\n"+sipNum+"\n"+sipPwd+"\n"+sipServer);
+                            Logutils.i(sipName + "\n" + sipNum + "\n" + sipPwd + "\n" + sipServer);
                             if (!TextUtils.isEmpty(sipNum) && !TextUtils.isEmpty(sipPwd) && !TextUtils.isEmpty(sipServer)) {
                                 SharedPreferencesUtils.putObject(MainActivity.this, "sipName", sipName);
                                 SharedPreferencesUtils.putObject(MainActivity.this, "sipNum", sipNum);
@@ -294,10 +291,18 @@ public class MainActivity extends BaseActivity {
                             break;
                         }
                     }
+                } else {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            builder.setTitle("No Sip Infor").setMessage("未获取到sip信息，请检查本机ip是否配置正确~~").create().show();
+                        }
+                    });
                 }
             }
         });
-        sipThread.start();
+        fixedThreadPool.execute(sipThread);
     }
 
     @OnClick({R.id.button_alarm, R.id.button_intercom, R.id.button_video, R.id.button_applyforplay, R.id.button_chat, R.id.button_setup})
@@ -333,30 +338,11 @@ public class MainActivity extends BaseActivity {
      * 发送短消息(测试)
      */
     private void sendMessage() {
-
-
         DatabaseHelper databaseHelper = new DatabaseHelper(MainActivity.this);
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         db.execSQL("delete from chat");
         Logutils.i("已清空聊天记录");
 
-
-//        if (SipService.isReady()) {
-//            try {
-//                LinphoneAddress linphoneAddress = LinphoneCoreFactory.instance().createLinphoneAddress("sip:7009@19.0.0.60");
-//                String x = linphoneAddress.asStringUriOnly();
-//                Logutils.i("xxxxxxx:" + x);
-//                Logutils.i(linphoneAddress.getUserName()+"\n"+linphoneAddress.getDomain()+"\n"+linphoneAddress.getPort());
-//
-//                String mess = PhoneUtils.getString(24);
-//
-//               Linphone.getLC().getChatRoom(linphoneAddress).sendMessage(mess);
-//
-//            } catch (LinphoneCoreException e) {
-//                e.printStackTrace();
-//            }
-//
-//        }
     }
 
     /**
