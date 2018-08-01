@@ -26,6 +26,7 @@ import com.zhketech.mstapp.client.port.project.callbacks.BatteryAndWifiService;
 import com.zhketech.mstapp.client.port.project.callbacks.SipGroupResourcesCallback;
 import com.zhketech.mstapp.client.port.project.global.AppConfig;
 import com.zhketech.mstapp.client.port.project.onvif.Device;
+import com.zhketech.mstapp.client.port.project.status.views.StateLayout;
 import com.zhketech.mstapp.client.port.project.taking.SipManager;
 import com.zhketech.mstapp.client.port.project.taking.SipService;
 import com.zhketech.mstapp.client.port.project.utils.GsonUtils;
@@ -68,6 +69,10 @@ public class SipGroupActivity extends BaseActivity {
     public TextView timeTextView;
     //时间线程是否正在运行
     boolean threadIsRun = true;
+
+    @BindView(R.id.sipgroup_status_layout)
+    StateLayout sipgroup_status_layout;
+
     //hander刷新主线程显示时间
     private Handler handler = new Handler() {
         @Override
@@ -220,7 +225,16 @@ public class SipGroupActivity extends BaseActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            ToastUtils.showShort("No data !!!");
+                            sipgroup_status_layout.showErrorView();
+                            sipgroup_status_layout.showErrorView("未获取到Sip资源分组~~~");
+                            sipgroup_status_layout.setErrorAction(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    sipgroup_status_layout.showProgressView();
+                                    sipgroup_status_layout.showProgressView("重新加载...");
+                                    getSipGroupResources();
+                                }
+                            });
                         }
                     });
                     WriteLogToFile.info("Sip group information is not obtained");

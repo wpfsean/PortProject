@@ -58,7 +58,6 @@
     </LinearLayout>
 
 
-
     <!--<GridView-->
     <!--android:id="@+id/gridview"-->
     <!--android:layout_width="match_parent"-->
@@ -73,16 +72,22 @@
     <!--android:verticalSpacing="15dp"></GridView>-->
     <!---->
 
+
+    <com.zhketech.mstapp.client.port.project.status.views.StateLayout
+        android:id="@+id/sipgroup_status_layout"
+        android:layout_width="match_parent"
+        android:layout_height="416dp">
+
     <android.support.v7.widget.RecyclerView
-        android:background="#e7e7e7"
         android:id="@+id/sip_group_recyclearview"
         android:layout_width="match_parent"
         android:layout_height="416dp"
-        android:padding="15dp"
         android:layout_below="@+id/sipgroup_main_layout"
+        android:background="#e7e7e7"
+        android:padding="15dp"
         android:visibility="visible"></android.support.v7.widget.RecyclerView>
 
-
+    </com.zhketech.mstapp.client.port.project.status.views.StateLayout>
     <LinearLayout
         android:id="@+id/control_layout_item"
         android:layout_width="match_parent"

@@ -613,7 +613,7 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
             mCamera.release();
             mCamera = null;
         }
-        mCamera.setDisplayOrientation(0);
+        mCamera.setDisplayOrientation(90);
         Camera.Parameters parameters = mCamera.getParameters();
         parameters.setFlashMode("off");
         parameters.setPreviewFormat(ImageFormat.NV21);

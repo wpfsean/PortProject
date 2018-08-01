@@ -120,7 +120,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener {
                 String fromuser = cursor.getString(cursor.getColumnIndex("fromuser"));
                 String message = cursor.getString(cursor.getColumnIndex("message"));
                 String toUser = cursor.getString(cursor.getColumnIndex("touser"));
-          //      Logutils.i(TimeUtils.longTime2Short(time) + "\t" + fromuser + "\t" + toUser + "\t" + message);
+               Logutils.i(TimeUtils.longTime2Short(time) + "\t" + fromuser + "\t" + toUser + "\t" + message);
                 if (fromuser.equals(AppConfig.native_sip_name)) {
                     ChatMsgEntity mEntity = new ChatMsgEntity();
                     mEntity.setDate(TimeUtils.longTime2Short(time));

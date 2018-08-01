@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -26,6 +27,7 @@ import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 /**
  * 設置中心頁面
@@ -41,15 +43,15 @@ public class SettingActivity extends BaseActivity {
     @BindView(R.id.setting_time_layout)
     TextView timeTextView;
 
-
     String subTypes[][] = new String[][]{
-            new String[]{"心跳Ip:"+AppConfig.server_ip, "心跳Port:"+AppConfig.heart_port+"", AppConfig.sb+"", ""},
-            new String[]{"报警服务Ip:"+AppConfig.alarm_server_ip, "报警服务端口:"+AppConfig.alarm_server_port+"", "當前用戶:"+AppConfig.current_user, "當前密碼:"+AppConfig.current_pass},
-            new String[]{"中科騰海", "中科騰海", "中科騰海", "中科騰海", "中科騰海"},
-            new String[]{"中科騰海", "中科騰海", "中科騰海", "中科騰海"}
+            new String[]{"服务器Ip:" + AppConfig.server_ip, "心跳Port:" + AppConfig.heart_port + "", "", "",""},
+            new String[]{"报警服务Ip:" + AppConfig.alarm_server_ip, "报警服务port:" + AppConfig.alarm_server_port + "", "", "",""},
+            new String[]{"中科騰海", "中科騰海", "中科騰海", "中科騰海", "中科騰海",""},
+            new String[]{AppConfig.server_ip, AppConfig.server_port+"",AppConfig.current_user, AppConfig.current_pass,""},
+            new String[]{"当前码流:"+AppConfig.isMainStream, "是否播放声音:"+AppConfig.isVideoSound, "", "",""}
     };
-    String type[] = new String[]{"心跳設置", "報警設置", "值班室設置", "中心服務器設置"};
-    int images[] = new int[]{R.mipmap.ic_launcher, R.mipmap.ic_launcher, R.mipmap.ic_launcher, R.mipmap.ic_launcher
+    String type[] = new String[]{"心跳設置", "報警設置", "值班室設置", "中心服務器設置","码流设置"};
+    int images[] = new int[]{R.mipmap.ic_launcher, R.mipmap.ic_launcher, R.mipmap.ic_launcher, R.mipmap.ic_launcher, R.mipmap.ic_launcher
     };
 
 
@@ -99,7 +101,7 @@ public class SettingActivity extends BaseActivity {
                     public void onItemClick(AdapterView<?> arg0, View arg1,
                                             int position, long arg3) {
 
-                        updateInformation(location,position);
+                        updateInformation(location, position);
                         Toast.makeText(getApplicationContext(), subTypes[location][position], Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -109,14 +111,16 @@ public class SettingActivity extends BaseActivity {
         new Thread(timeThread).start();
     }
 
-    private void updateInformation(final int location, int position) {
+    private void updateInformation(final int location, final int position) {
+
+        Logutils.i("AAAAAAAAA:"+location+"\t"+position);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 AlertDialog.Builder builder = new AlertDialog.Builder(SettingActivity.this);
-                if (location == 0){
+                if (location == 0) {
                     builder.setTitle("心跳设置");
-                }else if (location == 1){
+                } else if (location == 1) {
                     builder.setTitle("报警设置");
                 }
 
@@ -124,19 +128,28 @@ public class SettingActivity extends BaseActivity {
                 builder.setView(editText).setPositiveButton("sure", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String aa = editText.getText().toString().trim();
-                        Logutils.i("AAAAAA:"+aa);
-                        SharedPreferencesUtils.putObject(SettingActivity.this,"sb",aa);
+                        String editStr = editText.getText().toString().trim();
+                        if (TextUtils.isEmpty(editStr)) {
+                            return;
+                        }
+                        if (location == 0) {
+                            if (position == 0) {
+                                AppConfig.server_ip = editStr;
+                                SharedPreferencesUtils.putObject(App.getInstance(), "serverip", editStr);
+                            } else if (position == 1) {
+                                AppConfig.heart_port = Integer.parseInt(editStr);
+                            }
+                        } else if (location == 1) {
+                            if (position == 0) {
+                                AppConfig.alarm_server_ip = editStr;
+                            } else if (position == 1) {
+                                AppConfig.alarm_server_port = Integer.parseInt(editStr);
+                            }
 
-//                        runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                SettingActivity.this.finish();
-//                                Intent intent = new Intent(SettingActivity.this,SettingActivity.class);
-//                                startActivity(intent);
-//
-//                            }
-//                        });
+                        }
+                        subTypes[location][position] = editText.getText().toString().trim();
+                        subAdapter.notifyDataSetChanged();
+
 
                     }
                 }).setNegativeButton("cancel", new DialogInterface.OnClickListener() {
@@ -160,7 +173,7 @@ public class SettingActivity extends BaseActivity {
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1,
                                     int position, long arg3) {
-                updateInformation(location,position);
+                updateInformation(location, position);
                 Toast.makeText(getApplicationContext(), subTypes[location][position], Toast.LENGTH_SHORT).show();
             }
         });
@@ -183,5 +196,11 @@ public class SettingActivity extends BaseActivity {
                 }
             } while (threadIsRun);
         }
+    }
+
+    @OnClick(R.id.sip_group_finish_icon)
+    public void finishPager(View view){
+        threadIsRun = false;
+        SettingActivity.this.finish();
     }
 }

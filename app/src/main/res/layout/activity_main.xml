@@ -196,12 +196,35 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1">
 
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent">
+
                             <ImageButton
                                 android:id="@+id/button_applyforplay"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_centerInParent="true"
                                 android:background="@drawable/applyforplay_btn_select_port" />
+                            </FrameLayout>
+                            <ImageView
+                                android:id="@+id/main_loading_layout"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:visibility="gone"
+                                android:layout_centerHorizontal="true"
+                                android:layout_marginTop="25dp"
+                                android:src="@drawable/ic_loading" />
+
+                            <TextView
+                                android:id="@+id/main_loading_textview_layout"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/main_loading_layout"
+                                android:layout_centerHorizontal="true"
+                                android:text="正在计算开锁码"
+                                android:visibility="gone"
+                                android:textColor="@color/black" />
                         </RelativeLayout>
 
                     </LinearLayout>
@@ -212,18 +235,7 @@
 
         </LinearLayout>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
 
-            <ProgressBar
-                android:id="@+id/main_progressbar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:visibility="gone" />
-
-        </RelativeLayout>
 
     </FrameLayout>
 

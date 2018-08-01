@@ -45,11 +45,11 @@ public class AppConfig {
     //发送心跳的端口
     public static int heart_port = 2020;
     //服务器ip
-    public static String server_ip = "19.0.0.28";
+    public static String server_ip = (String) SharedPreferencesUtils.getObject(App.getInstance(), "serverip", "");
     //本机Ip
     public static String current_ip = (String) SharedPreferencesUtils.getObject(App.getInstance(), "nativeIp", "");
-    public static String current_user = "admin";
-    public static String current_pass = "pass";
+    public static String current_user = (String) SharedPreferencesUtils.getObject(App.getInstance(), "username", "");
+    public static String current_pass = (String) SharedPreferencesUtils.getObject(App.getInstance(), "userpass", "");
     //sip服务器ip
     public static String native_sip_server_ip = (String) SharedPreferencesUtils.getObject(App.getInstance(), "sipServer", "");
     public static String native_sip_name = (String) SharedPreferencesUtils.getObject(App.getInstance(), "sipNum", "");
@@ -88,6 +88,5 @@ public class AppConfig {
     //ftp://wang1210@wang1210.ftp-gz01.bcehost.com:8010/webroot/zhketech/dutyRoomData.php
 
 
-    public static String sb = (String) SharedPreferencesUtils.getObject(App.getInstance(),"sb","");
 
 }

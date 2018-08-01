@@ -10,6 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.zhketech.mstapp.client.port.project.R;
+import com.zhketech.mstapp.client.port.project.utils.Logutils;
 
 /**
  * Created by Root on 2018/7/24.
@@ -58,10 +59,13 @@ public class SettingSubAdapter extends BaseAdapter {
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
+        Logutils.i("dd:"+subPosition+"\t"+position);
         String infor = subType[subPosition][position];
         if (!TextUtils.isEmpty(infor)) {
             viewHolder.textView.setText(infor);
             viewHolder.textView.setTextColor(Color.BLACK);
+        }else {
+            viewHolder.textView.setText("");
         }
         return convertView;
     }

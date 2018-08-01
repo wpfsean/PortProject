@@ -1,6 +1,5 @@
 package com.zhketech.mstapp.client.port.project.pagers;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -9,12 +8,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
-import android.widget.ProgressBar;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.clj.fastble.BleManager;
 import com.zhketech.mstapp.client.port.project.R;
 import com.zhketech.mstapp.client.port.project.base.BaseActivity;
 import com.zhketech.mstapp.client.port.project.beans.AlarmBen;
@@ -27,39 +26,21 @@ import com.zhketech.mstapp.client.port.project.callbacks.RequestSipSourcesThread
 import com.zhketech.mstapp.client.port.project.callbacks.RequestVideoSourcesThread;
 import com.zhketech.mstapp.client.port.project.callbacks.SendheartService;
 import com.zhketech.mstapp.client.port.project.db.DatabaseHelper;
-import com.zhketech.mstapp.client.port.project.global.AppConfig;
 import com.zhketech.mstapp.client.port.project.onvif.Device;
 import com.zhketech.mstapp.client.port.project.onvif.Onvif;
-import com.zhketech.mstapp.client.port.project.status.views.StateLayout;
 import com.zhketech.mstapp.client.port.project.taking.Linphone;
 import com.zhketech.mstapp.client.port.project.taking.PhoneCallback;
 import com.zhketech.mstapp.client.port.project.taking.RegistrationCallback;
-import com.zhketech.mstapp.client.port.project.taking.SipManager;
 import com.zhketech.mstapp.client.port.project.taking.SipService;
 import com.zhketech.mstapp.client.port.project.utils.GsonUtils;
 import com.zhketech.mstapp.client.port.project.utils.Logutils;
-import com.zhketech.mstapp.client.port.project.utils.PhoneUtils;
 import com.zhketech.mstapp.client.port.project.utils.SharedPreferencesUtils;
-import com.zhketech.mstapp.client.port.project.utils.ToastUtils;
 import com.zhketech.mstapp.client.port.project.utils.WriteLogToFile;
 
-import org.linphone.core.ErrorInfo;
-import org.linphone.core.LinphoneAddress;
 import org.linphone.core.LinphoneCall;
-import org.linphone.core.LinphoneCallLog;
-import org.linphone.core.LinphoneChatMessage;
-import org.linphone.core.LinphoneChatRoom;
-import org.linphone.core.LinphoneConferenceImpl;
-import org.linphone.core.LinphoneContent;
-import org.linphone.core.LinphoneCore;
-import org.linphone.core.LinphoneCoreException;
-import org.linphone.core.LinphoneCoreFactory;
-import org.linphone.core.Reason;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -85,16 +66,24 @@ public class MainActivity extends BaseActivity {
     boolean threadIsRun = true;
     //存放设备信息的集合
     List<Device> dataSources = new ArrayList<>();
-    int num = -1;
+
+    List<SipBean> sipDataSources = new ArrayList<>();
+    int videoResourcesNum = -1;
+    int sipResourcesNum = -1;
     //时间
     @BindView(R.id.main_incon_time)
     TextView timeTextView;
     //日期
     @BindView(R.id.main_icon_date)
     TextView dateTextView;
-    //进度条
-    @BindView(R.id.main_progressbar)
-    ProgressBar main_progressbar;
+
+    @BindView(R.id.main_loading_layout)
+    ImageView main_loading_layout;
+
+    @BindView(R.id.main_loading_textview_layout)
+    TextView main_loading_textview_layout;
+
+    Animation mLoadingAnim;
 
 
     //handler處理ui
@@ -114,19 +103,17 @@ public class MainActivity extends BaseActivity {
                 Bundle bundle = msg.getData();
                 Device device = (Device) bundle.getSerializable("device");
                 dataSources.add(device);
-                if (dataSources.size() == num) {
+                if (dataSources.size() == videoResourcesNum) {
                     String json = GsonUtils.getGsonInstace().list2String(dataSources);
                     if (TextUtils.isEmpty(json)) {
                         return;
                     }
                     SharedPreferencesUtils.putObject(MainActivity.this, "result", json);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            toastShort("数据加载完毕！！！");
-                        }
-                    });
                 }
+            } else if (msg.what == 111) {
+                Bundle bundle = msg.getData();
+                Device sipDevice = (Device) bundle.getSerializable("sipdevice");
+                Logutils.i("sipDevice:" + sipDevice.toString());
             }
         }
     };
@@ -143,6 +130,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void initData() {
+        mLoadingAnim = AnimationUtils.loadAnimation(this, R.anim.loading);
         fixedThreadPool = Executors.newFixedThreadPool(5);
 
         //接收短消息
@@ -213,7 +201,7 @@ public class MainActivity extends BaseActivity {
             public void getResult(final List<VideoBen> mList) {
                 if (mList != null && mList.size() > 0) {
                     //总数据量
-                    num = mList.size();
+                    videoResourcesNum = mList.size();
                     for (int i = 0; i < mList.size(); i++) {
                         String deviceType = mList.get(i).getDevicetype();
                         if (deviceType.equals("ONVIF")) {
@@ -234,7 +222,7 @@ public class MainActivity extends BaseActivity {
                             });
                             fixedThreadPool.execute(onvif);
                         } else if (deviceType.equals("RTSP")) {
-                            String mRtsp = "rtsp://" + mList.get(i).getUsername() + ":" + mList.get(i).getPassword() + "@" + mList.get(i).getIp() + ":" + mList.get(i).getChannel();
+                            String mRtsp = "rtsp://" + mList.get(i).getUsername() + ":" + mList.get(i).getPassword() + "@" + mList.get(i).getIp() + "/" + mList.get(i).getChannel();
                             VideoBen v = mList.get(i);
                             v.setRtsp(mRtsp);
                             Device device = new Device();
@@ -270,8 +258,10 @@ public class MainActivity extends BaseActivity {
         RequestSipSourcesThread sipThread = new RequestSipSourcesThread(MainActivity.this, "0", new RequestSipSourcesThread.SipListern() {
             @Override
             public void getDataListern(List<SipBean> mList) {
+                sipResourcesNum = mList.size();
                 String nativeIp = (String) SharedPreferencesUtils.getObject(MainActivity.this, "nativeIp", "");
                 if (mList != null && mList.size() > 0) {
+                    resolveSipResourcesRtsp(mList);
                     for (SipBean s : mList) {
                         if (s.getIp().equals(nativeIp)) {
                             String sipName = s.getName();
@@ -303,6 +293,53 @@ public class MainActivity extends BaseActivity {
             }
         });
         fixedThreadPool.execute(sipThread);
+    }
+
+    /**
+     * 解析sip视频信息中的rtsp
+     *
+     * @param mList
+     */
+    private void resolveSipResourcesRtsp(List<SipBean> mList) {
+
+        for (int i = 0; i < mList.size(); i++) {
+            String deviceType = mList.get(i).getVideoBen().getDevicetype();
+            if (!TextUtils.isEmpty(deviceType)) {
+                if (deviceType.equals("ONVIF")) {
+                    String ip = mList.get(i).getVideoBen().getIp();
+                    final Device device = new Device();
+                    device.setVideoBen(mList.get(i).getVideoBen());
+                    device.setServiceUrl("http://" + ip + "/onvif/device_service");
+                    Onvif onvif = new Onvif(device, new Onvif.GetRtspCallback() {
+                        @Override
+                        public void getDeviceInfoResult(String rtsp, boolean isSuccess, Device mDevice) {
+                            Message message = new Message();
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable("sipdevice", mDevice);
+                            message.setData(bundle);
+                            message.what = 111;
+                            handler.sendMessage(message);
+                        }
+                    });
+                    fixedThreadPool.execute(onvif);
+                } else if (deviceType.equals("RTSP")) {
+                    String mRtsp = "rtsp://" + mList.get(i).getVideoBen().getUsername() + ":" + mList.get(i).getVideoBen().getPassword() + "@" + mList.get(i).getIp() + "/" + mList.get(i).getVideoBen().getChannel();
+                    VideoBen v = mList.get(i).getVideoBen();
+                    v.setRtsp(mRtsp);
+                    Device device = new Device();
+                    device.setRtspUrl(mRtsp);
+                    device.setVideoBen(v);
+                    Message message = new Message();
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("sipdevice", device);
+                    message.setData(bundle);
+                    message.what = 111;
+                    handler.sendMessage(message);
+                }
+            }
+        }
+
+
     }
 
     @OnClick({R.id.button_alarm, R.id.button_intercom, R.id.button_video, R.id.button_applyforplay, R.id.button_chat, R.id.button_setup})
@@ -352,7 +389,10 @@ public class MainActivity extends BaseActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                main_progressbar.setVisibility(View.VISIBLE);
+                main_loading_layout.setVisibility(View.VISIBLE);
+                main_loading_layout.startAnimation(mLoadingAnim);
+                main_loading_textview_layout.setVisibility(View.VISIBLE);
+                main_loading_textview_layout.setText("正在计算开锁码");
             }
         });
         AmmoRequestCallBack ammoRequestCallBack = new AmmoRequestCallBack(new AmmoRequestCallBack.GetDataListern() {
@@ -361,8 +401,10 @@ public class MainActivity extends BaseActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        main_progressbar.setVisibility(View.GONE);
-
+                        main_loading_layout.setVisibility(View.GONE);
+                        main_loading_layout.clearAnimation();
+                        main_loading_textview_layout.setVisibility(View.GONE);
+                        main_loading_textview_layout.setText("");
                         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                         builder.setTitle("申请开箱状态:").setMessage(result).create().show();
                     }

@@ -103,18 +103,7 @@ public class ChannelListActivity extends BaseActivity {
         int previewDataCount = adapter.previewData.size();
         Logutils.i("Count:" + previewDataCount);
 
-        for (Device device : adapter.previewData) {
-            Logutils.i(device.toString());
-        }
-        if (previewDataCount != 4) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(ChannelListActivity.this, "请复选四个选项！！！", Toast.LENGTH_SHORT).show();
-                }
-            });
-            return;
-        }
+
 
         List<Device> mDeviceList = adapter.previewData;
         Logutils.i("mDeviceList:" + mDeviceList.size());
