@@ -47,12 +47,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "touser" + " TEXT)";
 
 
+        String currentUserTable = "CREATE TABLE user(_id INTEGER PRIMARY KEY AUTOINCREMENT,insert_time TEXT,uname Text,upwd TEXT,serverip TEXT,isremember TEXT,isauto TEXT)";
 
 
         db.execSQL(sql1);
         db.execSQL(sql2);
         db.execSQL(sql3);
+        db.execSQL(currentUserTable);
     }
+
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {

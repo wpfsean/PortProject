@@ -1,8 +1,10 @@
 package com.zhketech.mstapp.client.port.project.callbacks;
 
+import com.zhketech.mstapp.client.port.project.base.App;
 import com.zhketech.mstapp.client.port.project.beans.SipGroupBean;
 import com.zhketech.mstapp.client.port.project.global.AppConfig;
 import com.zhketech.mstapp.client.port.project.utils.ByteUtils;
+import com.zhketech.mstapp.client.port.project.utils.SharedPreferencesUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -44,12 +46,13 @@ public class SipGroupResourcesCallback implements Runnable {
                 bys[7] = 0;
 
                 // 用户名密码
-                String name = AppConfig.current_user+"/"+AppConfig.current_pass;
+                String name = SharedPreferencesUtils.getObject(App.getInstance(),"username","")+"/"+SharedPreferencesUtils.getObject(App.getInstance(),"userpass","");
                 byte[] na = name.getBytes(AppConfig.dataFormat);
                 for (int i = 0; i < na.length; i++) {
                     bys[i + 8] = na[i];
                 }
-                socket = new Socket(AppConfig.server_ip, AppConfig.server_port);
+                String serverIp= (String) SharedPreferencesUtils.getObject(App.getInstance(),"serverip","");
+                socket = new Socket(serverIp, AppConfig.server_port);
                 OutputStream os = socket.getOutputStream();
                 os.write(bys);
                 os.flush();

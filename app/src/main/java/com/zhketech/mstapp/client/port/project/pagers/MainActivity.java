@@ -14,6 +14,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.zhketech.mstapp.client.port.project.R;
 import com.zhketech.mstapp.client.port.project.base.BaseActivity;
 import com.zhketech.mstapp.client.port.project.beans.AlarmBen;
@@ -39,6 +40,7 @@ import com.zhketech.mstapp.client.port.project.utils.WriteLogToFile;
 
 import org.linphone.core.LinphoneCall;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -67,9 +69,9 @@ public class MainActivity extends BaseActivity {
     //存放设备信息的集合
     List<Device> dataSources = new ArrayList<>();
 
-    List<SipBean> sipDataSources = new ArrayList<>();
+    List<SipVideo> sipData = new ArrayList<>();
     int videoResourcesNum = -1;
-    int sipResourcesNum = -1;
+    int sipResourcesNum = 0;
     //时间
     @BindView(R.id.main_incon_time)
     TextView timeTextView;
@@ -112,8 +114,16 @@ public class MainActivity extends BaseActivity {
                 }
             } else if (msg.what == 111) {
                 Bundle bundle = msg.getData();
-                Device sipDevice = (Device) bundle.getSerializable("sipdevice");
-                Logutils.i("sipDevice:" + sipDevice.toString());
+                SipVideo mSipVideo = (SipVideo) bundle.getSerializable("sipVideo");
+                sipData.add(mSipVideo);
+                if (sipData.size() == sipResourcesNum) {
+                    Gson gson = new Gson();
+                    String str = gson.toJson(sipData);
+                    if (!TextUtils.isEmpty(str)) {
+                        SharedPreferencesUtils.putObject(MainActivity.this, "sipresult", str);
+                        Logutils.i("success sip ");
+                    }
+                }
             }
         }
     };
@@ -130,6 +140,9 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void initData() {
+
+        //啟動心中服務
+        startService(new Intent(this, SendheartService.class));
         mLoadingAnim = AnimationUtils.loadAnimation(this, R.anim.loading);
         fixedThreadPool = Executors.newFixedThreadPool(5);
 
@@ -141,7 +154,7 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void run() {
                         AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
-                        alert.setTitle("短消息:").setMessage(ms).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        alert.setTitle("短信息").setMessage(ms).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
@@ -166,7 +179,7 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void run() {
                         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                        builder.setTitle("报警报文:").setMessage("是否成功接收:" + flage + "\n" + alarmBen.toString()).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        builder.setTitle("公告信息").setMessage(alarmBen.getAlertType()).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
@@ -181,8 +194,6 @@ public class MainActivity extends BaseActivity {
         });
         new Thread(receiverServerAlarm).start();
 
-        //啟動心中服務
-        startService(new Intent(this, SendheartService.class));
         //顯示當前頁面的時間
         TimeThread timeThread = new TimeThread();
         new Thread(timeThread).start();
@@ -199,7 +210,9 @@ public class MainActivity extends BaseActivity {
         RequestVideoSourcesThread requestVideoSourcesThread = new RequestVideoSourcesThread(MainActivity.this, new RequestVideoSourcesThread.GetDataListener() {
             @Override
             public void getResult(final List<VideoBen> mList) {
+
                 if (mList != null && mList.size() > 0) {
+                    Logutils.i("AAAAAAAAA:"+mList.size());
                     //总数据量
                     videoResourcesNum = mList.size();
                     for (int i = 0; i < mList.size(); i++) {
@@ -237,11 +250,12 @@ public class MainActivity extends BaseActivity {
                         }
                     }
                 } else {
+                    Logutils.i("AAAAAAAA:<0");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                            builder.setTitle("No Sip Infor").setMessage("未获取到VideoResources，请检查本机网络是否连接正常~~").create().show();
+                            builder.setTitle("No Video Infor").setMessage("未获取到VideoResources，请检查本机网络是否连接正常~~").create().show();
                         }
                     });
                     WriteLogToFile.info("No get Video Resources Data !!!");
@@ -255,37 +269,72 @@ public class MainActivity extends BaseActivity {
      * 获取本机的sip信息
      */
     private void getNativeSipInformation() {
+
         RequestSipSourcesThread sipThread = new RequestSipSourcesThread(MainActivity.this, "0", new RequestSipSourcesThread.SipListern() {
             @Override
             public void getDataListern(List<SipBean> mList) {
-                sipResourcesNum = mList.size();
-                String nativeIp = (String) SharedPreferencesUtils.getObject(MainActivity.this, "nativeIp", "");
+                Logutils.i("mlist:" + mList.size());
                 if (mList != null && mList.size() > 0) {
-                    resolveSipResourcesRtsp(mList);
-                    for (SipBean s : mList) {
-                        if (s.getIp().equals(nativeIp)) {
-                            String sipName = s.getName();
-                            String sipNum = s.getNumber();
-                            String sipPwd = s.getSippass();
-                            String sipServer = s.getSipserver();
-                            String name = s.getName();
-                            Logutils.i(sipName + "\n" + sipNum + "\n" + sipPwd + "\n" + sipServer);
-                            if (!TextUtils.isEmpty(sipNum) && !TextUtils.isEmpty(sipPwd) && !TextUtils.isEmpty(sipServer)) {
-                                SharedPreferencesUtils.putObject(MainActivity.this, "sipName", sipName);
-                                SharedPreferencesUtils.putObject(MainActivity.this, "sipNum", sipNum);
-                                SharedPreferencesUtils.putObject(MainActivity.this, "sipPwd", sipPwd);
-                                SharedPreferencesUtils.putObject(MainActivity.this, "sipServer", sipServer);
-                                SharedPreferencesUtils.putObject(MainActivity.this, "name", name);
-                                registerSipIntoServer(sipNum, sipPwd, sipServer);
+                    String nativeIp = (String) SharedPreferencesUtils.getObject(MainActivity.this, "nativeIp", "");
+                    if (!TextUtils.isEmpty(nativeIp)) {
+                        for (SipBean s : mList) {
+                            if (s.getIp().equals(nativeIp)) {
+                                String sipName = s.getName();
+                                String sipNum = s.getNumber();
+                                String sipPwd = s.getSippass();
+                                String sipServer = s.getSipserver();
+                                if (!TextUtils.isEmpty(sipNum) && !TextUtils.isEmpty(sipPwd) && !TextUtils.isEmpty(sipServer)) {
+                                    SharedPreferencesUtils.putObject(MainActivity.this, "sipName", sipName);
+                                    SharedPreferencesUtils.putObject(MainActivity.this, "sipNum", sipNum);
+                                    SharedPreferencesUtils.putObject(MainActivity.this, "sipPwd", sipPwd);
+                                    SharedPreferencesUtils.putObject(MainActivity.this, "sipServer", sipServer);
+                                    registerSipIntoServer(sipNum, sipPwd, sipServer);
+                                }
+                                break;
                             }
-                            break;
+                        }
+                    }
+                    for (int i = 0; i < mList.size(); i++) {
+                        final SipVideo sipVideo = new SipVideo();
+                        sipVideo.setNum(mList.get(i).getNumber());
+                        String deviceType = mList.get(i).getVideoBen().getDevicetype();
+                        if (!TextUtils.isEmpty(deviceType)) {
+                            sipResourcesNum += 1;
+                            if (deviceType.equals("ONVIF")) {
+                                String ip = mList.get(i).getVideoBen().getIp();
+                                final Device device = new Device();
+                                device.setVideoBen(mList.get(i).getVideoBen());
+                                device.setServiceUrl("http://" + ip + "/onvif/device_service");
+                                Onvif onvif = new Onvif(device, new Onvif.GetRtspCallback() {
+                                    @Override
+                                    public void getDeviceInfoResult(String rtsp, boolean isSuccess, Device mDevice) {
+                                        Message message = new Message();
+                                        Bundle bundle = new Bundle();
+                                        sipVideo.setRtsp(rtsp);
+                                        bundle.putSerializable("sipVideo", sipVideo);
+                                        message.setData(bundle);
+                                        message.what = 111;
+                                        handler.sendMessage(message);
+                                    }
+                                });
+                                fixedThreadPool.execute(onvif);
+                            } else if (deviceType.equals("RTSP")) {
+                                String mRtsp = "rtsp://" + mList.get(i).getVideoBen().getUsername() + ":" + mList.get(i).getVideoBen().getPassword() + "@" + mList.get(i).getIp() + "/" + mList.get(i).getVideoBen().getChannel();
+                                Message message = new Message();
+                                Bundle bundle = new Bundle();
+                                sipVideo.setRtsp(mRtsp);
+                                bundle.putSerializable("sipVideo", sipVideo);
+                                message.setData(bundle);
+                                message.what = 111;
+                                handler.sendMessage(message);
+                            }
                         }
                     }
                 } else {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this);
                             builder.setTitle("No Sip Infor").setMessage("未获取到sip信息，请检查本机ip是否配置正确~~").create().show();
                         }
                     });
@@ -515,4 +564,38 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
+
+
+    class SipVideo implements Serializable {
+        private String rtsp;
+        private String num;
+
+        public String getRtsp() {
+            return rtsp;
+        }
+
+        public void setRtsp(String rtsp) {
+            this.rtsp = rtsp;
+        }
+
+        public String getNum() {
+            return num;
+        }
+
+        public void setNum(String num) {
+            this.num = num;
+        }
+
+        public SipVideo() {
+        }
+
+        @Override
+        public String toString() {
+            return "SipVideo{" +
+                    "rtsp='" + rtsp + '\'' +
+                    ", num='" + num + '\'' +
+                    '}';
+        }
+    }
+
 }

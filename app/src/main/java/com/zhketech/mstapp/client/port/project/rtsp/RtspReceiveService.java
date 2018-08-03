@@ -11,9 +11,7 @@ import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-/**
- * 报警监听系统,一直监听端口2000
- */
+
 public class RtspReceiveService extends Service {
     ServerSocket serverSocket;
 

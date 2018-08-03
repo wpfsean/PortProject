@@ -81,7 +81,17 @@
                 android:id="@+id/main_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"></cn.nodemedia.NodePlayerView>
+
         </FrameLayout>
+
+        <TextView
+            android:id="@+id/single_sur_sow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="aaaaaaaaaa"
+            android:textColor="@color/white"
+            />
 
         <RelativeLayout
             android:id="@+id/relativelayout_bg_layout"

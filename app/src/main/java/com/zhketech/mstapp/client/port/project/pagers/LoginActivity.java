@@ -164,9 +164,20 @@ public class LoginActivity extends BaseActivity {
         switch (view.getId()) {
             case R.id.userlogin_button_layout:
                 loginMethod();
+
+//                Intent intent = new Intent();
+//                intent.setClass(LoginActivity.this, SingleCallActivity.class);
+//                intent.putExtra("userName", "7002");
+//                intent.putExtra("isVideo", true);
+//                startActivity(intent);
+
                 break;
         }
     }
+
+    String name = "";
+    String pass = "";
+    String server_IP = "";
 
     /**
      * 登录 验证
@@ -180,9 +191,9 @@ public class LoginActivity extends BaseActivity {
                 errorInfor.setVisibility(View.GONE);
             }
         });
-        final String name = userName.getText().toString().trim();
-        final String pass = userPwd.getText().toString().trim();
-        final String server_IP = serverIp.getText().toString().trim();
+          name = userName.getText().toString().trim();
+          pass = userPwd.getText().toString().trim();
+          server_IP = serverIp.getText().toString().trim();
         isRemember = rememberPwd.isChecked();
         isAuto = autoLoginCheckBox.isChecked();
 
@@ -202,13 +213,14 @@ public class LoginActivity extends BaseActivity {
                 public void loginStatus(final String status) {
                     if (!TextUtils.isEmpty(status)) {
                         final String result = status;
-                        Logutils.i(result);
+                        Logutils.w(result);
                         if (status.equals("success")) {
                             if (isRemember == true) {
-                                SharedPreferencesUtils.putObject(App.getInstance(), "rememberinfor", true);
-                                SharedPreferencesUtils.putObject(App.getInstance(), "serverip", server_IP);
-                                SharedPreferencesUtils.putObject(App.getInstance(), "username", name);
-                                SharedPreferencesUtils.putObject(App.getInstance(), "userpass", pass);
+                                Logutils.i("aaaaaaaaaa"+server_IP+"\t"+name+"\t"+pass);
+                                SharedPreferencesUtils.putObject(LoginActivity.this, "rememberinfor", true);
+                                SharedPreferencesUtils.putObject(LoginActivity.this, "serverip", server_IP);
+                                SharedPreferencesUtils.putObject(LoginActivity.this, "username", name);
+                                SharedPreferencesUtils.putObject(LoginActivity.this, "userpass", pass);
                             }
                             if (isAuto) {
                                 SharedPreferencesUtils.putObject(App.getInstance(), "auto", true);

@@ -1,6 +1,7 @@
 package com.zhketech.mstapp.client.port.project.callbacks;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.zhketech.mstapp.client.port.project.base.App;
 import com.zhketech.mstapp.client.port.project.beans.VideoBen;
@@ -51,13 +52,20 @@ public class RequestVideoSourcesThread extends Thread {
             bys[6] = 0;
             bys[7] = 0;
             //用户名列表
-            String name = AppConfig.current_user + "/" + AppConfig.current_pass + "/" + SharedPreferencesUtils.getObject(App.getInstance(),"nativeIp","");
+            String name = SharedPreferencesUtils.getObject(mContext,"username","") + "/" + SharedPreferencesUtils.getObject(mContext,"userpass","") + "/"+ SharedPreferencesUtils.getObject(mContext,"nativeIp","");
+
             byte[] na = name.getBytes(AppConfig.dataFormat);
             for (int i = 0; i < na.length; i++) {
                 bys[i + 8] = na[i];
             }
             //socket请求
-            socket = new Socket(AppConfig.server_ip, AppConfig.server_port);
+            String serverIp= (String) SharedPreferencesUtils.getObject(App.getInstance(),"serverip","");
+            if (!TextUtils.isEmpty(serverIp)) {
+                socket = new Socket(serverIp, AppConfig.server_port);
+            }else {
+                Logutils.i("serverIp is null");
+            }
+
             OutputStream os = socket.getOutputStream();
             os.write(bys);
             os.flush();

@@ -283,10 +283,12 @@ public class SipInforActivity extends BaseActivity {
             }
             String native_name = (String) SharedPreferencesUtils.getObject(SipInforActivity.this, "sipNum", "");
 
-            if (!TextUtils.isEmpty(native_name)) {
-                if (adapterList.get(position).getUsrname().equals(native_name)) {
-                    viewHolder.item_name.getPaint().setFlags(Paint.STRIKE_THRU_TEXT_FLAG); //中间横线
-                    viewHolder.item_name.setTextColor(0xffDC143C);
+            if (adapterList != null && adapterList.size() >0 ) {
+                if (!TextUtils.isEmpty(native_name)) {
+                    if (adapterList.get(position).getUsrname().equals(native_name)) {
+                        viewHolder.item_name.getPaint().setFlags(Paint.STRIKE_THRU_TEXT_FLAG); //中间横线
+                        viewHolder.item_name.setTextColor(0xffDC143C);
+                    }
                 }
             }
             if (adapterList.get(position).getState().equals("0")) {

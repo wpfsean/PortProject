@@ -1,6 +1,7 @@
 package com.zhketech.mstapp.client.port.project.callbacks;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.zhketech.mstapp.client.port.project.base.App;
 import com.zhketech.mstapp.client.port.project.global.AppConfig;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -52,7 +54,7 @@ public class SendHearToServerThread extends Thread {
 
 
         String lat1 = (String) SharedPreferencesUtils.getObject(App.getInstance(), "lat", "");
-        double lat = 10;
+        double lat = 0;
         if (!TextUtils.isEmpty(lat1)) {
             lat = Double.parseDouble(lat1);
         }
@@ -74,17 +76,20 @@ public class SendHearToServerThread extends Thread {
         //剩余电量
         byte[] power = new byte[1];
         int battery = (int) SharedPreferencesUtils.getObject(App.getInstance(), "battery", 0);
+
         power[0] = (byte) battery;
         System.arraycopy(power, 0, requestBytes, 80, 1);
         //内存使用
         byte[] mem = new byte[1];
-        double ram = (int) SharedPreferencesUtils.getObject(App.getInstance(), "ram", 0);
-        mem[0] = (byte) ram;
+        String ram = (String) SharedPreferencesUtils.getObject(App.getInstance(), "ram", "");
+
+        mem[0] = (byte) Double.parseDouble(ram);
         System.arraycopy(mem, 0, requestBytes, 81, 1);
         //cpu使用
         byte[] cpu = new byte[1];
-        double cpu1 = (int) SharedPreferencesUtils.getObject(App.getInstance(), "cpu", 0);
-        cpu[0] = (byte) cpu1;
+        String cpu1 = (String) SharedPreferencesUtils.getObject(App.getInstance(), "cpu", "");
+        cpu[0] = (byte) Double.parseDouble(cpu1);
+
         System.arraycopy(cpu, 0, requestBytes, 82, 1);
         //信号强度
         byte[] signal = new byte[1];
@@ -112,9 +117,16 @@ public class SendHearToServerThread extends Thread {
 
         //建立UDP请求
         DatagramSocket socketUdp = null;
+        DatagramPacket datagramPacket = null;
         try {
             socketUdp = new DatagramSocket(AppConfig.heart_port);
-            DatagramPacket datagramPacket = new DatagramPacket(requestBytes, requestBytes.length, InetAddress.getByName(AppConfig.server_ip), AppConfig.heart_port);
+            String serverIp= (String) SharedPreferencesUtils.getObject(App.getInstance(),"serverip","");
+            if (!TextUtils.isEmpty(serverIp)) {
+                 datagramPacket = new DatagramPacket(requestBytes, requestBytes.length, InetAddress.getByName(serverIp), AppConfig.heart_port);
+
+            }else {
+                Logutils.i("serverIp is null");
+            }
             socketUdp.send(datagramPacket);
             socketUdp.close();
         } catch (UnknownHostException e) {

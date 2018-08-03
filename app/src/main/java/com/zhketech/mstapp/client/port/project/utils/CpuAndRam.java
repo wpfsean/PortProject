@@ -59,10 +59,10 @@ public class CpuAndRam implements Runnable {
     public void run() {
         double cpu = sampleCPU();
         double mem = sampleMemory();
-        Log.d("CpuAndRam", "CPU: " + cpu + "%" + "    Memory: " + mem + "MB");
+        Log.i("CpuAndRam", "CPU: " + cpu + "%" + "    Memory: " + mem + "MB");
 
-        SharedPreferencesUtils.putObject(App.getInstance(),"cpu",cpu);
-        SharedPreferencesUtils.putObject(App.getInstance(),"ram",mem);
+        SharedPreferencesUtils.putObject(App.getInstance(),"cpu",cpu+"");
+        SharedPreferencesUtils.putObject(App.getInstance(),"ram",mem+"");
 
     }
 

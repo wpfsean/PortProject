@@ -9,6 +9,7 @@ import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -17,6 +18,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -29,12 +31,18 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.zhketech.mstapp.client.port.project.R;
 import com.zhketech.mstapp.client.port.project.adpaters.ButtomSlidingAdapter;
 import com.zhketech.mstapp.client.port.project.base.BaseActivity;
 import com.zhketech.mstapp.client.port.project.beans.ButtomSlidingBean;
 import com.zhketech.mstapp.client.port.project.beans.SipBean;
+import com.zhketech.mstapp.client.port.project.beans.VideoBen;
+import com.zhketech.mstapp.client.port.project.callbacks.RequestSipSourcesThread;
 import com.zhketech.mstapp.client.port.project.global.AppConfig;
+import com.zhketech.mstapp.client.port.project.onvif.Device;
+import com.zhketech.mstapp.client.port.project.onvif.Onvif;
 import com.zhketech.mstapp.client.port.project.rtsp.RtspServer;
 import com.zhketech.mstapp.client.port.project.rtsp.media.VideoMediaCodec;
 import com.zhketech.mstapp.client.port.project.rtsp.media.h264data;
@@ -42,24 +50,30 @@ import com.zhketech.mstapp.client.port.project.rtsp.record.Constant;
 import com.zhketech.mstapp.client.port.project.taking.Linphone;
 import com.zhketech.mstapp.client.port.project.taking.PhoneCallback;
 import com.zhketech.mstapp.client.port.project.utils.Logutils;
+import com.zhketech.mstapp.client.port.project.utils.SharedPreferencesUtils;
 
 import org.linphone.core.LinphoneCall;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import cn.nodemedia.NodePlayer;
+import cn.nodemedia.NodePlayerDelegate;
 import cn.nodemedia.NodePlayerView;
 
 /**
  * Created by Root on 2018/7/16.
  */
 
-public class SingleCallActivity  extends BaseActivity implements View.OnClickListener, Camera.PreviewCallback, SurfaceHolder.Callback{
+public class SingleCallActivity extends BaseActivity implements View.OnClickListener, Camera.PreviewCallback, SurfaceHolder.Callback, NodePlayerDelegate {
 
     @BindView(R.id.secodary_surfacevie)
     public SurfaceView secodary_surfacevie;
@@ -98,12 +112,12 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
 
     @BindView(R.id.bottom_sliding_recyclerview)
     public RecyclerView bottomSlidingView;
-
-
+    @BindView(R.id.single_sur_sow)
+    TextView single_sur_sow;
 
     @BindView(R.id.main_view)
-    public  NodePlayerView np;
-
+    public NodePlayerView np;
+    ExecutorService fixedThreadPool = null;
     List<SipBean> sipListResources = new ArrayList<>();
     AudioManager mAudioManager = null;
     NodePlayer nodePlayer;
@@ -132,7 +146,7 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
     private boolean isRecording = false;
     private static int cameraId = 0;//默认后置摄像头
     boolean isBandService = false;
-
+    List<MainActivity.SipVideo> sipData = new ArrayList<>();
 
     private Handler handler = new Handler() {
         @Override
@@ -150,6 +164,7 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
             }
         }
     };
+
     @Override
     public int intiLayout() {
         return R.layout.calling_activity;
@@ -162,6 +177,7 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
         nodePlayer = new NodePlayer(SingleCallActivity.this);
         np.setRenderType(NodePlayerView.RenderType.SURFACEVIEW);
         nodePlayer.setPlayerView(np);
+        nodePlayer.setNodePlayerDelegate(this);
 
         hangupButton.setOnClickListener(this);
         btn_camera.setOnClickListener(this);
@@ -186,6 +202,19 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
 
     @Override
     public void initData() {
+        String sipResult = (String) SharedPreferencesUtils.getObject(SingleCallActivity.this, "sipresult", "");
+        if (!TextUtils.isEmpty(sipResult)) {
+            Gson gson = new Gson();
+            Type type = new TypeToken<List<MainActivity.SipVideo>>() {
+            }.getType();
+            List<MainActivity.SipVideo> alterSamples = new ArrayList<>();
+            alterSamples = gson.fromJson(sipResult, type);
+            if (alterSamples != null) {
+                sipData = alterSamples;
+            }
+        }
+
+        fixedThreadPool = Executors.newFixedThreadPool(5);
         native_name = AppConfig.native_sip_name;
         isCall = this.getIntent().getBooleanExtra("isCall", true);//是打电话还是接电话
         userName = this.getIntent().getStringExtra("userName");//对方号码
@@ -193,8 +222,6 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
 
 
         sipListResources = new ArrayList<>();
-        String result = "";
-
         Logutils.i("UserName:" + userName);
         Logutils.i("native_name:" + native_name);
         Logutils.i("isCall:" + isCall);
@@ -224,17 +251,37 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
             text_who_is_calling_information.setVisibility(View.GONE);
 //            main_player_framelayout.setVisibility(View.VISIBLE);
 //            second_player_relativelayout.setVisibility(View.VISIBLE);
-          framelayout_bg_layout.setVisibility(View.VISIBLE);
+            framelayout_bg_layout.setVisibility(View.VISIBLE);
             relativelayout_bg_layout.setVisibility(View.VISIBLE);
             image_bg_layout.setVisibility(View.GONE);
 
-            nodePlayer.setInputUrl("rtmp://live.hkstv.hk.lxdns.com/live/hks");
-            nodePlayer.setAudioEnable(false);
-            nodePlayer.start();
+            for (MainActivity.SipVideo sipData : sipData) {
+                if (sipData.getNum().equals(userName)) {
+                    if (!TextUtils.isEmpty(sipData.getRtsp())) {
+                        nodePlayer.setInputUrl(sipData.getRtsp());
+                        nodePlayer.setAudioEnable(false);
+                        nodePlayer.start();
+                    } else {
+                        Logutils.i("no find rtsp");
+                    }
+                    break;
+                } else {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            single_sur_sow.setText("未获取到视频信息~");
+                        }
+                    });
+                    Logutils.i("未配置");
+                }
+            }
+
+
         }
         initBottomData();
 
     }
+
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
@@ -244,7 +291,7 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
             case R.id.btn_handup_icon:
 
 
-                    Linphone.hangUp();
+                Linphone.hangUp();
 
                 break;
             case R.id.btn_mute:
@@ -380,10 +427,11 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
         gridLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         bottomSlidingView.setLayoutManager(gridLayoutManager);
         int images[] = new int[]{R.drawable.port_network_intercom_selected, R.drawable.port_instant_messaging_selected, R.drawable.port_video_surveillance_selected, R.drawable.port_alarm_btn_selected, R.drawable.port_bullet_btn_selected};
-        ButtomSlidingAdapter ada = new ButtomSlidingAdapter(SingleCallActivity.this, images,0);
+        ButtomSlidingAdapter ada = new ButtomSlidingAdapter(SingleCallActivity.this, images, 0);
         bottomSlidingView.setAdapter(ada);
 
     }
+
     /**
      * 计时线程开启
      */
@@ -590,6 +638,7 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
         h264Queue.add(data);
     }
 
+
     /**
      * 初始化相机参数
      */
@@ -613,7 +662,10 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
             mCamera.release();
             mCamera = null;
         }
-        mCamera.setDisplayOrientation(90);
+        if (cameraId == 0)
+            mCamera.setDisplayOrientation(90);
+        else
+            mCamera.setDisplayOrientation(270);
         Camera.Parameters parameters = mCamera.getParameters();
         parameters.setFlashMode("off");
         parameters.setPreviewFormat(ImageFormat.NV21);
@@ -643,5 +695,24 @@ public class SingleCallActivity  extends BaseActivity implements View.OnClickLis
         }.start();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mRtspServer != null)
+            mRtspServer.removeCallbackListener(mRtspCallbackListener);
+        unbindService(mRtspServiceConnection);
 
+    }
+
+    @Override
+    public void onEventCallback(NodePlayer player, int event, final String msg) {
+        if (event == 1003) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    single_sur_sow.setText(msg);
+                }
+            });
+        }
+    }
 }

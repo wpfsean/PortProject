@@ -256,6 +256,9 @@ public class MutilScreenActivity extends BaseActivity implements NodePlayerDeleg
 
     @Override
     public void initData() {
+        //加载底部数据
+        initBottomData();
+
         //取出事先解析好的数据
         String dataSources = (String) SharedPreferencesUtils.getObject(MutilScreenActivity.this, "result", "");
         if (TextUtils.isEmpty(dataSources)) {
@@ -287,8 +290,7 @@ public class MutilScreenActivity extends BaseActivity implements NodePlayerDeleg
         }
         currentSingleList = singlePm.getObjects(videoCurrentPage);
         initPlayer();
-        //加载底部数据
-        initBottomData();
+
         //当前播放的视频中是否包含云台控制
         getPtz();
         //时间显示
