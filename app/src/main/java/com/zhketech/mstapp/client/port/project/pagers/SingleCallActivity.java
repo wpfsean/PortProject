@@ -133,10 +133,7 @@ public class SingleCallActivity extends BaseActivity implements View.OnClickList
     int num = 0;
     String native_name = "";
 
-    //视频录制的硬编码参数
-    private static int queuesize = 10;
-    public static ArrayBlockingQueue<h264data> h264Queue = new ArrayBlockingQueue<>(queuesize);
-    public static ArrayBlockingQueue<byte[]> YUVQueue = new ArrayBlockingQueue<>(queuesize);
+
     private RtspServer mRtspServer;
     private String RtspAddress;
     private SurfaceHolder surfaceHolder;//小窗口
@@ -535,17 +532,12 @@ public class SingleCallActivity extends BaseActivity implements View.OnClickList
         } else {
             data = VideoMediaCodec.rotateYUV420Degree270(data, Constant.VIDEO_WIDTH, Constant.VIDEO_HEIGHT);
         }
-        putYUVData(data, data.length);
+        VideoMediaCodec.putYUVData(data, data.length);
 
     }
 
 
-    public void putYUVData(byte[] buffer, int length) {
-        if (YUVQueue.size() >= 10) {
-            YUVQueue.poll();
-        }
-        YUVQueue.add(buffer);
-    }
+
 
     private RtspServer.CallbackListener mRtspCallbackListener = new RtspServer.CallbackListener() {
 
@@ -620,23 +612,6 @@ public class SingleCallActivity extends BaseActivity implements View.OnClickList
 
     }
 
-    /**
-     * put数据
-     *
-     * @param buffer
-     * @param type
-     * @param ts
-     */
-    public static void putData(byte[] buffer, int type, long ts) {
-        if (h264Queue.size() >= queuesize) {
-            h264Queue.poll();
-        }
-        h264data data = new h264data();
-        data.data = buffer;
-        data.type = type;
-        data.ts = ts;
-        h264Queue.add(data);
-    }
 
 
     /**
@@ -700,7 +675,8 @@ public class SingleCallActivity extends BaseActivity implements View.OnClickList
         super.onPause();
         if (mRtspServer != null)
             mRtspServer.removeCallbackListener(mRtspCallbackListener);
-        unbindService(mRtspServiceConnection);
+        if (mRtspServiceConnection != null)
+            unbindService(mRtspServiceConnection);
 
     }
 

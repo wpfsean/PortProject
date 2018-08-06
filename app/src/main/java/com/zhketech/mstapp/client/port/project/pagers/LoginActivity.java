@@ -194,10 +194,12 @@ public class LoginActivity extends BaseActivity {
           name = userName.getText().toString().trim();
           pass = userPwd.getText().toString().trim();
           server_IP = serverIp.getText().toString().trim();
-        isRemember = rememberPwd.isChecked();
-        isAuto = autoLoginCheckBox.isChecked();
+
 
         if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(pass) && !TextUtils.isEmpty(server_IP)) {
+            rememberPwd.setChecked(true);
+            isRemember = rememberPwd.isChecked();
+            isAuto = autoLoginCheckBox.isChecked();
             LoginParameters loginParameters = new LoginParameters();
             loginParameters.setUsername(name);
             loginParameters.setPass(pass);

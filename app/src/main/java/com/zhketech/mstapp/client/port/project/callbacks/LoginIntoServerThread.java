@@ -50,6 +50,7 @@ public class LoginIntoServerThread implements Runnable {
             }
             //socket请求
             socket = new Socket(loginBean.getServer_ip(), AppConfig.server_port);
+            socket.setSoTimeout(6*1000);
             OutputStream os = socket.getOutputStream();
             os.write(bys);
             os.flush();

@@ -574,7 +574,7 @@ public class MutilScreenActivity extends BaseActivity implements NodePlayerDeleg
             case R.id.video_zoomout_button:
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     if (!TextUtils.isEmpty(mRtsp) && !TextUtils.isEmpty(mToken)) {
-                        ControlPtz controlPtz = new ControlPtz(mRtsp, mToken, "zoom_s", 0.3, 0.03);
+                        ControlPtz controlPtz = new ControlPtz(mRtsp, mToken, "zoom_b", -0.3, -0.03);
                         controlPtz.start();
                     }
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -586,7 +586,7 @@ public class MutilScreenActivity extends BaseActivity implements NodePlayerDeleg
             case R.id.video_zoombig_button:
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     if (!TextUtils.isEmpty(mRtsp) && !TextUtils.isEmpty(mToken)) {
-                        ControlPtz controlPtz = new ControlPtz(mRtsp, mToken, "zoom_b", -0.3, -0.03);
+                        ControlPtz controlPtz = new ControlPtz(mRtsp, mToken, "zoom_s", 0.3, 0.03);
                         controlPtz.start();
                     }
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {

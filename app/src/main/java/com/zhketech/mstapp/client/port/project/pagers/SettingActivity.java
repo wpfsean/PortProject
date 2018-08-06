@@ -43,15 +43,17 @@ public class SettingActivity extends BaseActivity {
     @BindView(R.id.setting_time_layout)
     TextView timeTextView;
 
+    String serverIp = (String) SharedPreferencesUtils.getObject(App.getInstance(), "serverip", "");
+
+
     String subTypes[][] = new String[][]{
-            new String[]{"服务器Ip:" + AppConfig.server_ip, "心跳Port:" + AppConfig.heart_port + "", "", "",""},
-            new String[]{"报警服务Ip:" + AppConfig.alarm_server_ip, "报警服务port:" + AppConfig.alarm_server_port + "", "", "",""},
-            new String[]{"中科騰海", "中科騰海", "中科騰海", "中科騰海", "中科騰海",""},
-            new String[]{AppConfig.server_ip, AppConfig.server_port+"",AppConfig.current_user, AppConfig.current_pass,""},
-            new String[]{"当前码流:"+AppConfig.isMainStream, "是否播放声音:"+AppConfig.isVideoSound, "", "",""}
+            new String[]{"服务器Ip:" + serverIp, "心跳Port:" + AppConfig.heart_port + "", "", "", ""},
+            new String[]{"报警服务Ip:" + AppConfig.alarm_server_ip, "报警服务port:" + AppConfig.alarm_server_port + "", "", "", ""},
+            new String[]{"当前码流:" + AppConfig.isMainStream, "是否播放声音:" + AppConfig.isVideoSound, "", "", ""},
+            new String[]{serverIp, AppConfig.server_port + "", AppConfig.current_user, AppConfig.current_pass, ""}
     };
-    String type[] = new String[]{"心跳設置", "報警設置", "值班室設置", "中心服務器設置","码流设置"};
-    int images[] = new int[]{R.mipmap.ic_launcher, R.mipmap.ic_launcher, R.mipmap.ic_launcher, R.mipmap.ic_launcher, R.mipmap.ic_launcher
+    String type[] = new String[]{"心跳設置", "報警設置", "码流设置", "中心服務器設置"};
+    int images[] = new int[]{R.mipmap.ic_launcher, R.mipmap.ic_launcher, R.mipmap.ic_launcher, R.mipmap.ic_launcher
     };
 
 
@@ -113,7 +115,7 @@ public class SettingActivity extends BaseActivity {
 
     private void updateInformation(final int location, final int position) {
 
-        Logutils.i("AAAAAAAAA:"+location+"\t"+position);
+        Logutils.i("AAAAAAAAA:" + location + "\t" + position);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -122,8 +124,9 @@ public class SettingActivity extends BaseActivity {
                     builder.setTitle("心跳设置");
                 } else if (location == 1) {
                     builder.setTitle("报警设置");
+                }else if (location == 3){
+                    builder.setTitle("中心服务器设置");
                 }
-
                 final EditText editText = new EditText(SettingActivity.this);
                 builder.setView(editText).setPositiveButton("sure", new DialogInterface.OnClickListener() {
                     @Override
@@ -134,7 +137,6 @@ public class SettingActivity extends BaseActivity {
                         }
                         if (location == 0) {
                             if (position == 0) {
-                                AppConfig.server_ip = editStr;
                                 SharedPreferencesUtils.putObject(App.getInstance(), "serverip", editStr);
                             } else if (position == 1) {
                                 AppConfig.heart_port = Integer.parseInt(editStr);
@@ -144,6 +146,14 @@ public class SettingActivity extends BaseActivity {
                                 AppConfig.alarm_server_ip = editStr;
                             } else if (position == 1) {
                                 AppConfig.alarm_server_port = Integer.parseInt(editStr);
+                            }
+
+                        }else if (location == 3) {
+
+                            if (position == 0) {
+                                SharedPreferencesUtils.putObject(App.getInstance(), "serverip", editStr);
+                            } else if (position == 1) {
+                                AppConfig.server_port = Integer.parseInt(editStr);
                             }
 
                         }
@@ -160,6 +170,7 @@ public class SettingActivity extends BaseActivity {
                 }).create().show();
             }
         });
+
     }
 
     private void selectDefult() {
@@ -199,7 +210,7 @@ public class SettingActivity extends BaseActivity {
     }
 
     @OnClick(R.id.sip_group_finish_icon)
-    public void finishPager(View view){
+    public void finishPager(View view) {
         threadIsRun = false;
         SettingActivity.this.finish();
     }

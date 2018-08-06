@@ -5,6 +5,7 @@ package com.zhketech.mstapp.client.port.project.rtsp;
 
 
 import com.zhketech.mstapp.client.port.project.pagers.SingleCallActivity;
+import com.zhketech.mstapp.client.port.project.rtsp.media.VideoMediaCodec;
 import com.zhketech.mstapp.client.port.project.rtsp.media.h264data;
 
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class ScreenInputStream extends InputStream {
         int min = 0;
 
         if(mBuffer == null){
-            data = SingleCallActivity.h264Queue.poll();
+            data = VideoMediaCodec.h264Queue.poll();
             if(data == null) return 0;
             ts = data.ts;
             mBuffer =ByteBuffer.wrap(data.data);

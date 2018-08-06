@@ -19,12 +19,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ArrayBlockingQueue;
 
 
 public class VideoMediaCodec extends MediaCodecBase {
 
     private final static String TAG = "VideoMediaCodec";
-
+    //视频录制的硬编码参数
+    private static int queuesize = 10;
+    public static ArrayBlockingQueue<h264data> h264Queue = new ArrayBlockingQueue<>(queuesize);
+    public static ArrayBlockingQueue<byte[]> YUVQueue = new ArrayBlockingQueue<>(queuesize);
 
     private Surface mSurface;
     private long startTime = 0;
@@ -111,8 +115,8 @@ public class VideoMediaCodec extends MediaCodecBase {
             while (isRun) {
                 if (mEncoder == null)
                     break;
-                if (SingleCallActivity.YUVQueue.size() > 0) {
-                    input = SingleCallActivity.YUVQueue.poll();
+                if (YUVQueue.size() > 0) {
+                    input = YUVQueue.poll();
                     byte[] yuv420sp = new byte[Constant.VIDEO_WIDTH * Constant.VIDEO_HEIGHT * 3 / 2];
                     NV21ToNV12(input, yuv420sp, Constant.VIDEO_WIDTH, Constant.VIDEO_HEIGHT);
                     input = yuv420sp;
@@ -147,10 +151,10 @@ public class VideoMediaCodec extends MediaCodecBase {
                         System.arraycopy(configbyte, 0, keyframe, 0, configbyte.length);
                         System.arraycopy(outData, 0, keyframe, configbyte.length, outData.length);
 
-                        SingleCallActivity.putData(keyframe, 1, mBufferInfo.presentationTimeUs * 1000L);
+                        putData(keyframe, 1, mBufferInfo.presentationTimeUs * 1000L);
 
                     } else {
-                        SingleCallActivity.putData(outData, 2, mBufferInfo.presentationTimeUs * 1000L);
+                        putData(outData, 2, mBufferInfo.presentationTimeUs * 1000L);
                     }
                     mEncoder.releaseOutputBuffer(outputBufferIndex, false);
                     outputBufferIndex = mEncoder.dequeueOutputBuffer(mBufferInfo, TIMEOUT_USEC);
@@ -296,5 +300,32 @@ public class VideoMediaCodec extends MediaCodecBase {
         for (j = 0; j < framesize / 2; j += 2) {
             nv12[framesize + j] = nv21[j + framesize - 1];
         }
+    }
+
+
+    /**
+     * put数据
+     *
+     * @param buffer
+     * @param type
+     * @param ts
+     */
+    public static void putData(byte[] buffer, int type, long ts) {
+        if (h264Queue.size() >= queuesize) {
+            h264Queue.poll();
+        }
+        h264data data = new h264data();
+        data.data = buffer;
+        data.type = type;
+        data.ts = ts;
+        h264Queue.add(data);
+    }
+
+
+    public static void putYUVData(byte[] buffer, int length) {
+        if (YUVQueue.size() >= 10) {
+            YUVQueue.poll();
+        }
+        YUVQueue.add(buffer);
     }
 }

@@ -1,5 +1,6 @@
 package com.zhketech.mstapp.client.port.project.pagers;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,20 +14,25 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.zhketech.mstapp.client.port.project.R;
+import com.zhketech.mstapp.client.port.project.base.App;
 import com.zhketech.mstapp.client.port.project.base.BaseActivity;
 import com.zhketech.mstapp.client.port.project.beans.AlarmBen;
 import com.zhketech.mstapp.client.port.project.beans.SipBean;
 import com.zhketech.mstapp.client.port.project.beans.VideoBen;
 import com.zhketech.mstapp.client.port.project.callbacks.AmmoRequestCallBack;
+import com.zhketech.mstapp.client.port.project.callbacks.ReceiveEmergencyAlarm;
 import com.zhketech.mstapp.client.port.project.callbacks.ReceiveServerMess;
 import com.zhketech.mstapp.client.port.project.callbacks.ReceiverServerAlarm;
 import com.zhketech.mstapp.client.port.project.callbacks.RequestSipSourcesThread;
 import com.zhketech.mstapp.client.port.project.callbacks.RequestVideoSourcesThread;
+import com.zhketech.mstapp.client.port.project.callbacks.SendEmergencyAlarmToServer;
 import com.zhketech.mstapp.client.port.project.callbacks.SendheartService;
 import com.zhketech.mstapp.client.port.project.db.DatabaseHelper;
+import com.zhketech.mstapp.client.port.project.global.AppConfig;
 import com.zhketech.mstapp.client.port.project.onvif.Device;
 import com.zhketech.mstapp.client.port.project.onvif.Onvif;
 import com.zhketech.mstapp.client.port.project.taking.Linphone;
@@ -40,7 +46,12 @@ import com.zhketech.mstapp.client.port.project.utils.WriteLogToFile;
 
 import org.linphone.core.LinphoneCall;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -86,6 +97,8 @@ public class MainActivity extends BaseActivity {
     TextView main_loading_textview_layout;
 
     Animation mLoadingAnim;
+
+    boolean isSendAlaem;
 
 
     //handler處理ui
@@ -137,9 +150,10 @@ public class MainActivity extends BaseActivity {
     public void initView() {
         ButterKnife.bind(this);
     }
-
+    String nativeIp ;
     @Override
     public void initData() {
+         nativeIp = (String) SharedPreferencesUtils.getObject(App.getInstance(), "nativeIp", "");
 
         //啟動心中服務
         startService(new Intent(this, SendheartService.class));
@@ -212,7 +226,7 @@ public class MainActivity extends BaseActivity {
             public void getResult(final List<VideoBen> mList) {
 
                 if (mList != null && mList.size() > 0) {
-                    Logutils.i("AAAAAAAAA:"+mList.size());
+                    Logutils.i("AAAAAAAAA:" + mList.size());
                     //总数据量
                     videoResourcesNum = mList.size();
                     for (int i = 0; i < mList.size(); i++) {
@@ -342,6 +356,32 @@ public class MainActivity extends BaseActivity {
             }
         });
         fixedThreadPool.execute(sipThread);
+
+
+        /**
+         * 监听应急报警
+         */
+        ReceiveEmergencyAlarm ReceiveEmergencyAlarm = new ReceiveEmergencyAlarm(new ReceiveEmergencyAlarm.EmergencyAlarmText() {
+            @Override
+            public void getListern(final AlarmBen alarmBen) {
+
+                if (!isSendAlaem){
+                    return;
+                }
+                final android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (alarmBen != null) {
+                            builder.setTitle("友邻哨报警信息").setMessage(alarmBen.getVideoBen().getName()+"\n"+alarmBen.getAlertType()).create().show();
+                        } else {
+                            toastShort("infor is null ");
+                        }
+                    }
+                });
+            }
+        });
+        new Thread(ReceiveEmergencyAlarm).start();
     }
 
     /**
@@ -415,20 +455,9 @@ public class MainActivity extends BaseActivity {
                 startActivity(intent);
                 break;
             case R.id.button_alarm:
-                sendMessage();
+                emergencyAlarm();
                 break;
         }
-    }
-
-    /**
-     * 发送短消息(测试)
-     */
-    private void sendMessage() {
-        DatabaseHelper databaseHelper = new DatabaseHelper(MainActivity.this);
-        SQLiteDatabase db = databaseHelper.getWritableDatabase();
-        db.execSQL("delete from chat");
-        Logutils.i("已清空聊天记录");
-
     }
 
     /**
@@ -598,4 +627,28 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+
+    //应急报警
+    public void emergencyAlarm() {
+        final String[] alermType = {"脱逃", "暴狱", "袭击", "灾害", "挟持", "突发"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("请选择报警类型:");
+        builder.setItems(alermType, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String type = alermType[which];
+                VideoBen videoBen = new VideoBen("flage", "flage", "flage", "flage", nativeIp, "flage", "flage", "flage", "flage", "flage", false, "flage", "flage");
+                SendEmergencyAlarmToServer  sendEmergencyAlarmToServer = new SendEmergencyAlarmToServer(videoBen, type, new SendEmergencyAlarmToServer.Callback() {
+                    @Override
+                    public void getCallbackData(String result) {
+                        Logutils.i("callback result:"+result);
+                        isSendAlaem = true;
+                    }
+                });
+                new Thread(sendEmergencyAlarmToServer).start();
+            }
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
 }
