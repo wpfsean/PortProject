@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/PortProject.iml" filepath="$PROJECT_DIR$/PortProject.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mylibrary/mylibrary.iml" filepath="$PROJECT_DIR$/mylibrary/mylibrary.iml" />
       <module fileurl="file://$PROJECT_DIR$/nodemediaclient/nodemediaclient.iml" filepath="$PROJECT_DIR$/nodemediaclient/nodemediaclient.iml" />
     </modules>
   </component>
